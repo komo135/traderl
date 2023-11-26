@@ -1,6 +1,7 @@
 import numpy as np
 from collections import deque
 import torch
+import os
 
 from traderl.environment import Env
 from traderl.memory import Memory
@@ -224,7 +225,10 @@ class DQN:
         symbols, data = DQN.get_data()
         ```
         """
-        data = np.load('traderl/data/data.npz')
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        data_path = os.path.join(current_path, 'traderl/data/data.npz')
+        data = np.load(data_path)
+
         data_dict = {
             'state': data['state'],
             'open': data['open'],
