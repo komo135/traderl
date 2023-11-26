@@ -54,10 +54,6 @@ def preprocess_data(data: pd.DataFrame, symbol: str, financial_type: str) -> pd.
     """
     logging.debug(f"Preprocessing data. Symbol: {symbol}, Financial type: {financial_type}")
 
-    # Check if data is a numeric dataframe
-    if not np.issubdtype(data.dtypes, np.number).all():
-        raise ValueError("Data should be a numeric dataframe.")
-
     # Convert column names to lowercase
     data.columns = data.columns.str.lower()
 
