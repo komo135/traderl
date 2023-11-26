@@ -103,6 +103,9 @@ def add_technical_indicators(data: pd.DataFrame) -> pd.DataFrame:
     # Average True Range
     data['atr'] = ta.volatility.average_true_range(data['high'], data['low'], data['close'])
 
+    # Drop rows with NaN values
+    data = data.dropna()
+
     logging.debug(f"Data shape after adding technical indicators: {data.shape}")
     return data
 
