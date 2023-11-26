@@ -2,6 +2,7 @@ import numpy as np
 from collections import deque
 import torch
 import os
+from jupyter import clear_output
 
 from traderl.environment import Env
 from traderl.memory import Memory
@@ -329,6 +330,7 @@ class DQN:
 
             if (i + 1) % 100000 == 0:
                 self.save_agent()
+                clear_output()
 
     def update(self):
         """
