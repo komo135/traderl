@@ -224,7 +224,7 @@ class DQN:
         symbols, data = DQN.get_data()
         ```
         """
-        data = np.load('data.npz')
+        data = np.load('traderl/data/data.npz')
         data_dict = {
             'state': data['state'],
             'open': data['open'],
