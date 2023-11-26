@@ -82,26 +82,26 @@ def add_technical_indicators(data: pd.DataFrame) -> pd.DataFrame:
     logging.debug("Adding technical indicators.")
 
     # Relative Strength Index
-    data['rsi'] = ta.momentum.rsi(data['Close'])
+    data['rsi'] = ta.momentum.rsi(data['close'])
 
     # Moving Average Convergence Divergence
     data['macd'] = ta.trend.MACD(data.close).macd_diff()
 
     # Short-term signal: Crossover of 5-day and 10-day EMA (Exponential Moving Average)
-    data['ema_5'] = ta.trend.ema_indicator(data['Close'], window=5)
-    data['ema_10'] = ta.trend.ema_indicator(data['Close'], window=10)
+    data['ema_5'] = ta.trend.ema_indicator(data['close'], window=5)
+    data['ema_10'] = ta.trend.ema_indicator(data['close'], window=10)
     data['ema_5_10_crossover'] = np.where(data['ema_5'] > data['ema_10'], 1, -1)
 
     # Long-term signal: 200-day EMA
-    data['ema_200'] = ta.trend.ema_indicator(data['Close'], window=200)
+    data['ema_200'] = ta.trend.ema_indicator(data['close'], window=200)
 
     # Bollinger Bands
-    BollingerBands = ta.volatility.BollingerBands(data['Close'])
+    BollingerBands = ta.volatility.BollingerBands(data['close'])
     data['b_pband'] = BollingerBands.bollinger_pband()
     data['b_wband'] = BollingerBands.bollinger_wband()
 
     # Average True Range
-    data['atr'] = ta.volatility.average_true_range(data['High'], data['Low'], data['Close'])
+    data['atr'] = ta.volatility.average_true_range(data['high'], data['low'], data['close'])
 
     logging.debug(f"Data shape after adding technical indicators: {data.shape}")
     return data
