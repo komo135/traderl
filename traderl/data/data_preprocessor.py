@@ -129,7 +129,7 @@ def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> np.array:
 
     # Split the data into chunks of the specified window size
     data_split = []
-    for i in range(len(data_scaled) - window_size + 1):
+    for i in range(100, len(data_scaled) - window_size + 1):
         data_split.append(data_scaled[i:i + window_size])
 
     logging.debug(f"Data shape after scaling and splitting: {data.shape}")
