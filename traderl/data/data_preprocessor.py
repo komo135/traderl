@@ -110,7 +110,7 @@ def add_technical_indicators(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> np.array:
+def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> np.ndarray:
     """
     Scale and split the data into chunks of a specified window size.
 
@@ -124,7 +124,7 @@ def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> np.array:
     logging.debug(f"Scaling and splitting data. Window size: {window_size}")
 
     # Select specific columns for the scaled data
-    data = np.array(data[["ema_5_10_crossover", "ema_200", "rsi", "macd", "b_pband", "b_wband", "atr"]])
+    data_array = np.array(data[["ema_5_10_crossover", "ema_200", "rsi", "macd", "b_pband", "b_wband", "atr"]])
 
     # Scale the data
     scaler = RobustScaler()

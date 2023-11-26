@@ -1,5 +1,5 @@
 import torch
-from traderl.model import all_networks
+from traderl.model import all_models
 
 __all__ = ["build_model"]
 
@@ -11,8 +11,8 @@ class QModel(torch.nn.Module):
         self.action_space = action_space
         self.in_channels = in_channels
 
-        self.network1 = all_networks[self.network_name](self.in_channels)
-        self.network2 = all_networks[self.network_name](self.in_channels)
+        self.network1 = all_models[self.network_name](self.in_channels)
+        self.network2 = all_models[self.network_name](self.in_channels)
 
         self.fc = self.create_fc_layers()
 
@@ -38,7 +38,7 @@ class ActorModel(torch.nn.Module):
         self.action_space = action_space
         self.in_channels = in_channels
 
-        self.network = all_networks[self.network_name](self.in_channels)
+        self.network = all_models[self.network_name](self.in_channels)
 
         self.fc = self.create_fc_layers()
 

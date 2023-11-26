@@ -107,7 +107,7 @@ class Memory:
         states, actions, rewards, new_states, dones = memory.sample(batch_size)
         ```
         """
-        indices = np.unique(np.random.randint(0, len(self), batch_size*2, replace=False))[:batch_size]
+        indices = np.unique(np.random.randint(0, len(self), batch_size*2))[:batch_size]
 
         states = self.states[indices]
         trading_states = self.trading_states[indices]

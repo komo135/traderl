@@ -109,7 +109,7 @@ class Env:
         pip = 0
         old_i = 0
         trade_length = 0
-        stop_loss = np.clip(atr[i] * 2, self.min_stop_loss[self.symbol], self.max_stop_loss[self.symbol])
+        stop_loss = np.clip(atr[i] * 2, self.min_stop_losses[self.symbol], self.max_stop_losses[self.symbol])
         position_size = int(self.asset * self.risk / stop_loss)
         position_size = np.minimum(np.maximum(position_size, 0), 10000000)
 
@@ -162,7 +162,7 @@ class Env:
 
         return np.clip(profit_factor, 0, 2), np.clip(expected_ratio, 0, 2)
 
-    def get_data(self, start_index: int, end_index: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def get_data(self, start_index: int, end_index: int) -> tuple[torch.Tensor, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Get the state, open, high, low, and atr arrays for the given start and end indices.
 

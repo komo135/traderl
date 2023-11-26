@@ -32,4 +32,4 @@ cnnnet_models = {
     "cnnnet_128": lambda in_channels, **kwargs: create_cnnnet(in_channels, 128, **kwargs),
 }
 
-__all__ = [cnnnet_models]
+__all__ = ["cnnnet_models"]

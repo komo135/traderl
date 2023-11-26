@@ -2,7 +2,7 @@ import numpy as np
 from collections import deque
 import torch
 import os
-from jupyter import clear_output
+from IPython.display import clear_output
 
 from traderl.environment import Env
 from traderl.memory import Memory
@@ -57,7 +57,7 @@ class DQN:
                  learning_rate: float = 1e-4,
                  gamma: float = 0.99,
                  epsilon: float = 1.0,
-                 replay_buffer_size: int = 1e6,
+                 replay_buffer_size: float = 1e6,
                  replay_ratio: int = 4,
                  target_update: int = 100,
                  tau: float = 0.01,
@@ -113,7 +113,7 @@ class DQN:
             self.load_agent()
         else:
             self.memory = Memory(
-                self.replay_buffer_size,
+                int(self.replay_buffer_size),
                 self.data["state"].shape[-2:],
                 self.env.trade_state.shape[-2:],
                 1, torch.int32, self.device
@@ -168,24 +168,35 @@ class DQN:
         #### Outputs:
         None. Initializes `self.model` and `self.target_model` as instances of the neural network.
         """
-        self.model = build_model(
+        output_model = build_model(
             self.network_name,
             self.action_space,
             self.data["state"].shape[-2:],
             self.actor_critic
         )
-        self.target_model = build_model(
+        target_output_model = build_model(
             self.network_name,
             self.action_space,
             self.data["state"].shape[-2:],
             self.actor_critic
         )
+
+        if isinstance(output_model, tuple):
+            self.actor, self.critic = output_model
+        else:
+            self.model = output_model
+
+        if isinstance(output_model, tuple):
+            self.target_actor, self.target_critic = output_model
+        else:
+            self.target_model = output_model
+
         self.target_model.load_state_dict(self.model.state_dict())
 
         self.model.to(self.device)
         self.target_model.to(self.device)
 
-    def get_action(self, state: tuple[torch.tensor, torch.tensor]) -> int:
+    def get_action(self, state: tuple[torch.Tensor, torch.Tensor]) -> int:
         """
         ### Returns an action based on the current state.
 

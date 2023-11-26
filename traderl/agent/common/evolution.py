@@ -78,7 +78,7 @@ class Evolution:
         for event, marker, color in zip(['long', 'short', 'stop loss', 'take profit', 'stop trade'],
                                         ['^', 'v', 'x', 'o', 's'],
                                         ['g', 'r', 'b', 'y', 'c']):
-            indices = [i for i, e in enumerate(trade_history) if e == event]
+            indices = pd.Index([i for i, e in enumerate(trade_history) if e == event])
             ax.plot(indices, ohlc_df['close'][indices], marker, markersize=10, color=color, label=event)
 
         plt.legend()
