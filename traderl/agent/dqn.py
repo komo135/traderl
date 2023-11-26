@@ -224,24 +224,18 @@ class DQN:
         symbols, data = DQN.get_data()
         ```
         """
-        state = np.load("traderl/data/state.npy")
-        market = np.load("traderl/data/market.npy")
-
-        symbols = state.shape[0]
-        open = market[:, :, 0].reshape((symbols, 1))
-        high = market[:, :, 1].reshape((symbols, 1))
-        low = market[:, :, 2].reshape((symbols, 1))
-        atr = market[:, :, 3].reshape((symbols, 1))
-
-        data = {
-            "state": state,
-            "open": open,
-            "high": high,
-            "low": low,
-            "atr": atr,
+        data = np.load('data.npz')
+        data_dict = {
+            'state': data['state'],
+            'open': data['open'],
+            'high': data['high'],
+            'low': data['low'],
+            'atr': data['atr']
         }
 
-        return symbols, data
+        symbols = data_dict['state'].shape[0]
+
+        return symbols, data_dict
 
     def load_agent(self):
         """
