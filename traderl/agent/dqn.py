@@ -62,7 +62,7 @@ class DQN:
                  target_update: int = 100,
                  tau: float = 0.01,
                  batch_size: int = 64,
-                 n_step: int = 4,
+                 n_step: int = 3,
                  load: bool = False):
         """
         ### Initializes the DQN agent.
