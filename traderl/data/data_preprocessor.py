@@ -120,12 +120,12 @@ def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> np.array:
     """
     logging.debug(f"Scaling and splitting data. Window size: {window_size}")
 
+    # Select specific columns for the scaled data
+    data = np.array(data[["ema_5_10_crossover", "ema_200", "rsi", "macd", "b_pband", "b_wband", "atr"]])
+
     # Scale the data
     scaler = RobustScaler()
     data_scaled = scaler.fit_transform(data)
-
-    # Select specific columns for the scaled data
-    data_scaled = np.array(data_scaled[["ema_5_10_crossover", "ema_200", "rsi", "macd", "b_pband", "b_wband", "atr"]])
 
     # Split the data into chunks of the specified window size
     data_split = []
