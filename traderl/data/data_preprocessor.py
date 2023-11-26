@@ -21,7 +21,7 @@ def load_data(remote: bool, symbol: str = None) -> pd.DataFrame:
     """
     if remote:
         if symbol is None:
-            raise ValueError("Symbol, start date, and end date are required when loading data from a remote source.")
+            raise ValueError("Symbol are required when loading data from a remote source.")
         # Load data from a remote source, Yahoo in this case.
         data = pdr.get_data_yahoo(symbol)
     else:
