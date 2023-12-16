@@ -295,7 +295,7 @@ class DQN:
 
         done = 1
 
-        i = 0
+        num_update_data = 0
 
         for _ in range(num_iterations):
             returns = next(step, None) if done == 1 else None
@@ -303,13 +303,13 @@ class DQN:
             self.epsilon = max(self.epsilon, 0.01)  # Ensure epsilon does not go below a certain threshold
 
             if returns is None:
-                i += 1
-                print(i)
+                num_update_data += 1
+                print(num_update_data)
                 print(f"symbol: {self.env.symbol}, start: {start}, end: {end}")
                 print(f"total pip: {self.env.total_pip}, asset: {self.env.asset}")
                 states, trading_states, actions, rewards, dons = self._initialize_deques()
 
-                if (i + 1) % 15 == 0:
+                if (num_update_data + 1) % 15 == 0:
                     start, end = self._get_start_end()
                 else:
                     self.env.symbol -= 1
