@@ -1,5 +1,5 @@
 import torch
-from traderl.model import all_models
+from models import all_models
 
 __all__ = ["build_model"]
 
