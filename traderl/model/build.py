@@ -20,11 +20,11 @@ class QModel(torch.nn.Module):
         self.network1 = all_models[self.network_name](self.state_channels)
         self.network2 = all_models[self.network_name](self.trade_state_channels)
 
-        self.fc = self.create_fc_layers()
+        self.fc = None
 
-    def create_fc_layers(self):
+    def create_fc_layers(self, input_channels):
         fc = torch.nn.Sequential(
-            torch.nn.Linear(self.network1.out_channels * 2, 512),
+            torch.nn.Linear(input_channels, 512),
             torch.nn.ELU(),
             torch.nn.Linear(512, self.action_space),
         )
@@ -34,6 +34,9 @@ class QModel(torch.nn.Module):
         x1 = self.network1(x1)
         x2 = self.network2(x2)
         x = torch.cat((x1, x2), dim=-1)
+        if self.fc is None:
+            self.fc = self.create_fc_layers(x.shape[-1])
+
         return self.fc(x)
 
 
@@ -46,19 +49,22 @@ class ActorModel(torch.nn.Module):
 
         self.network = all_models[self.network_name](self.state_channels)
 
-        self.fc = self.create_fc_layers()
+        self.fc = None
 
-    def create_fc_layers(self):
+    def create_fc_layers(self, input_channels):
         fc = torch.nn.Sequential(
-            torch.nn.Linear(self.network.out_channels, 512),
+            torch.nn.Linear(input_channels, 512),
             torch.nn.ELU(),
             torch.nn.Linear(512, self.action_space),
-            torch.nn.Tanh(),
+            torch.nn.Tanh()
         )
         return fc
 
     def forward(self, x):
         x = self.network(x)
+        if self.fc is None:
+            self.fc = self.create_fc_layers(x.shape[-1])
+
         return self.fc(x)
 
 
