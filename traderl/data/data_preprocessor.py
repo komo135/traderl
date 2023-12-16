@@ -135,8 +135,10 @@ def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> np.ndarra
     for i in range(100, len(data_scaled) - window_size + 1):
         data_split.append(data_scaled[i:i + window_size])
 
+    data_split = np.array(data_split)
+    data_split = np.transpose(data_split, (0, 2, 1))
+
     logging.debug(f"Data shape after scaling and splitting: {data.shape}")
-    return np.array(data_split)
 
 
 def main(remote: bool, folder_path: str = None, symbols: list = None, financial_type: str = None):
