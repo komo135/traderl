@@ -161,3 +161,10 @@ cython_debug/
 
 # Visual Studio Code
 .vscode/
+
+# github access token
+.github_token
+
+tmp/
+
+.DS_Store
