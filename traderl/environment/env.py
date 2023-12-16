@@ -205,7 +205,7 @@ class Env:
             self.trade_state[0, :, :-1].copy_(self.trade_state[0, :, 1:])
             self.trade_state[0, :, -1].zero_()
 
-    def step(self, get_action: function, start_index: int, end_index: int, train=False):
+    def step(self, get_action, start_index: int, end_index: int, train=False):
         """
         Perform a step in the trading environment.
 
