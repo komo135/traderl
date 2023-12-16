@@ -173,6 +173,7 @@ def main(remote: bool, folder_path: str = None, symbols: list = None, financial_
         data = preprocess_data(data, symbol, financial_type)
         market_datas.append(data)
         state_datas.append(scale_and_split_data(data))
+    logging.info("Data loaded and preprocessed.")
 
     # Stack state data
     state_datas = np.stack(state_datas, axis=0)
