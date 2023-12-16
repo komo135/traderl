@@ -177,7 +177,7 @@ def main(remote: bool, folder_path: str = None, symbols: list = None, financial_
     logging.debug(f"Shapes of items in state_datas: {[item.shape for item in state_datas]}")
 
     # Stack state data
-    state_datas = np.stack(state_datas, axis=0)
+    state_datas = np.array(state_datas, axis=0)
     logging.debug(f"State data shape: {state_datas.shape}")
 
     # Split market data into OHLC and stack
