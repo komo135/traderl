@@ -249,6 +249,7 @@ class DQN:
             'open': data['open'],
             'high': data['high'],
             'low': data['low'],
+            'close': data['close'],
             'atr': data['atr']
         }
 
@@ -294,7 +295,9 @@ class DQN:
 
         done = 1
 
-        for i in range(num_iterations):
+        i = 0
+
+        for _ in range(num_iterations):
             returns = next(step, None)
             self.epsilon *= 0.999  # Adjust the decay rate as needed
             self.epsilon = max(self.epsilon, 0.01)  # Ensure epsilon does not go below a certain threshold
@@ -309,6 +312,7 @@ class DQN:
                 else:
                     self.env.symbol -= 1
                 step = self.env.step(self.get_action, start, end, True)
+                i += 1
             else:
                 state, trading_state, action, reward, done = returns
 
@@ -345,7 +349,7 @@ class DQN:
                     if (self.i + 1) % 1000 == 0:
                         self.evolution.evolute(self.get_action, self.test_step[0], self.test_step[-1])
 
-            if (i + 1) % 100000 == 0:
+            if (self.i + 1) % 10000 == 0:
                 self.save_agent()
                 clear_output()
 

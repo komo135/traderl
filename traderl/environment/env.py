@@ -287,6 +287,7 @@ class Env:
 
             if is_stop:
                 if days >= self.sim_limit or self.asset_drawdown <= self.sim_stop_cond:
+                    print(days, self.asset_drawdown)
                     done = 0
                     reward = (self.asset / self.initial_asset) * ((profit_factor + expected_ratio) / 2) * 100
 
