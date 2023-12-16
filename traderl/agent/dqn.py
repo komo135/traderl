@@ -198,22 +198,23 @@ class DQN:
         self.model.to(self.device)
         self.target_model.to(self.device)
 
-    def get_action(self, state: tuple[torch.Tensor, torch.Tensor]) -> int:
+    def get_action(self, state: tuple[torch.Tensor, torch.Tensor], train=False) -> int:
         """
         ### Returns an action based on the current state.
 
         #### Parameters:
         - `state` (tuple[torch.tensor, torch.tensor]): The current state of the environment.
+        - `train` (bool): Whether the agent is in training mode.
 
         #### Outputs:
         - `action` (int): The action to take.
 
         #### Example:
         ```python
-        action = dqn_agent.get_action(state)
+        action = dqn_agent.get_action(state, train=True)
         ```
         """
-        if np.random.rand() < self.epsilon:
+        if train and np.random.rand() < self.epsilon:
             action = np.random.randint(self.action_space)
         else:
             with torch.no_grad():
