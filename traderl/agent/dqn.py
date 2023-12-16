@@ -303,6 +303,7 @@ class DQN:
             self.epsilon = max(self.epsilon, 0.01)  # Ensure epsilon does not go below a certain threshold
 
             if returns is None:
+                print(i)
                 print(f"symbol: {self.env.symbol}, start: {start}, end: {end}")
                 print(f"total pip: {self.env.total_pip}, asset: {self.env.asset}")
                 states, trading_states, actions, rewards, dons = self._initialize_deques()
