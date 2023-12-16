@@ -238,7 +238,7 @@ class DQN:
         ```
         """
         current_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        data_path = os.path.join(current_path, 'traderl/data/data.npz')
+        data_path = os.path.join(current_path, 'data/data.npz')
         data = np.load(data_path)
 
         data_dict = {
