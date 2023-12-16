@@ -298,11 +298,11 @@ class DQN:
         i = 0
 
         for _ in range(num_iterations):
-            returns = next(step, None)
+            returns = next(step, None) if done == 1 else None
             self.epsilon *= 0.999  # Adjust the decay rate as needed
             self.epsilon = max(self.epsilon, 0.01)  # Ensure epsilon does not go below a certain threshold
 
-            if returns is None or done == 0:
+            if returns is None:
                 print(f"symbol: {self.env.symbol}, start: {start}, end: {end}")
                 print(f"total pip: {self.env.total_pip}, asset: {self.env.asset}")
                 states, trading_states, actions, rewards, dons = self._initialize_deques()

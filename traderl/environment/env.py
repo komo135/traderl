@@ -11,7 +11,7 @@ class Env:
     spread = 10  # Spread
 
     sim_limit = 5000  # Simulation limit
-    sim_stop_cond = 0.75  # Simulation stop condition (0.75 means 75% of max asset)
+    sim_stop_cond = 0.5  # Simulation stop condition (0.75 means 75% of max asset)
 
     def __init__(self, action_type: str, data: dict, device: torch.device):
         """
