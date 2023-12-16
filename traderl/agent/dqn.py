@@ -237,7 +237,7 @@ class DQN:
         symbols, data = DQN.get_data()
         ```
         """
-        current_path = os.path.dirname(os.path.abspath(__file__))
+        current_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         data_path = os.path.join(current_path, 'traderl/data/data.npz')
         data = np.load(data_path)
 
