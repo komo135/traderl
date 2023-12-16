@@ -21,12 +21,13 @@ class QModel(torch.nn.Module):
         self.network2 = all_models[self.network_name](self.trade_state_channels)
 
         self.fc = None
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def create_fc_layers(self, input_channels):
         fc = torch.nn.Sequential(
-            torch.nn.Linear(input_channels, 512),
+            torch.nn.Linear(input_channels, 512, device=self.device),
             torch.nn.ELU(),
-            torch.nn.Linear(512, self.action_space),
+            torch.nn.Linear(512, self.action_space, device=self.device),
         )
         return fc
 
@@ -50,12 +51,13 @@ class ActorModel(torch.nn.Module):
         self.network = all_models[self.network_name](self.state_channels)
 
         self.fc = None
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def create_fc_layers(self, input_channels):
         fc = torch.nn.Sequential(
-            torch.nn.Linear(input_channels, 512),
+            torch.nn.Linear(input_channels, 512, device=self.device),
             torch.nn.ELU(),
-            torch.nn.Linear(512, self.action_space),
+            torch.nn.Linear(512, self.action_space, device=self.device),
             torch.nn.Tanh()
         )
         return fc
