@@ -272,6 +272,7 @@ class Env:
 
                 event = None
                 if lower_pip <= -stop_loss:
+                    print(lower_pip, -stop_loss)
                     pip = -stop_loss
                     is_stop = True
                     event = "stop loss"

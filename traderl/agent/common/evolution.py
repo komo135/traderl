@@ -74,9 +74,9 @@ class Evolution:
         low = data['low'][symbol][start:end]
         close = data['close'][symbol][start:end]
         ohlc = np.stack([open, high, low, close], axis=-1)
-        ohlc_df = pd.DataFrame(ohlc, columns=['open', 'high', 'low', 'close'])
+        ohlc_df = pd.DataFrame(ohlc, columns=['open', 'high', 'low', 'close'])[-500:]
 
-        ohlc_df.index = pd.date_range(start='2000-01-01', periods=len(ohlc_df.index))[-500:]
+        ohlc_df.index = pd.date_range(start='2000-01-01', periods=len(ohlc_df.index))
 
         _, ax = plt.subplots(figsize=(50.0, 20.0))
         mpf.plot(ohlc_df, type='candle', ax=ax)
