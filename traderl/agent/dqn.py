@@ -171,13 +171,15 @@ class DQN:
         output_model = build_model(
             self.network_name,
             self.action_space,
-            self.data["state"].shape[-1],
+            self.data["state"].shape[-2],
+            self.env.trade_state.shape[-2],
             self.actor_critic
         )
         target_output_model = build_model(
             self.network_name,
             self.action_space,
-            self.data["state"].shape[-1],
+            self.data["state"].shape[-2],
+            self.env.trade_state.shape[-2],
             self.actor_critic
         )
 

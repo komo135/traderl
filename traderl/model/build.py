@@ -10,14 +10,15 @@ class NetworkKeyNotFoundError(Exception):
 
 
 class QModel(torch.nn.Module):
-    def __init__(self, network_name, action_space, in_channels):
+    def __init__(self, network_name, action_space, state_channels, trade_state_channels):
         super().__init__()
         self.network_name = network_name
         self.action_space = action_space
-        self.in_channels = in_channels
+        self.state_channels = state_channels
+        self.trade_state_channels = trade_state_channels
 
-        self.network1 = all_models[self.network_name](self.in_channels)
-        self.network2 = all_models[self.network_name](self.in_channels)
+        self.network1 = all_models[self.network_name](self.state_channels)
+        self.network2 = all_models[self.network_name](self.trade_state_channels)
 
         self.fc = self.create_fc_layers()
 
@@ -37,13 +38,13 @@ class QModel(torch.nn.Module):
 
 
 class ActorModel(torch.nn.Module):
-    def __init__(self, network_name, action_space, in_channels):
+    def __init__(self, network_name, action_space, state_channels):
         super().__init__()
         self.network_name = network_name
         self.action_space = action_space
-        self.in_channels = in_channels
+        self.state_channels = state_channels
 
-        self.network = all_models[self.network_name](self.in_channels)
+        self.network = all_models[self.network_name](self.state_channels)
 
         self.fc = self.create_fc_layers()
 
@@ -61,14 +62,15 @@ class ActorModel(torch.nn.Module):
         return self.fc(x)
 
 
-def build_model(network_name, action_space, in_channels, actor_critic=False) -> torch.nn.Module | tuple[torch.nn.Module, torch.nn.Module]:
+def build_model(network_name, action_space, state_channels, trade_state_channels, actor_critic=False) -> torch.nn.Module | tuple[torch.nn.Module, torch.nn.Module]:
     """
     Build a model.
 
     Args:
         network_name (str): Name of the network.
         action_space (int): Number of actions.
-        in_channels (int): Number of input channels.
+        state_channels (int): Number of state input channels.
+        trade_state_channels (int): Number of trade state input channels.
         actor_critic (bool): Whether to build an actor-critic model or not.
 
     Returns:
@@ -76,11 +78,11 @@ def build_model(network_name, action_space, in_channels, actor_critic=False) -> 
     """
     try:
         if actor_critic:
-            actor = ActorModel(network_name, action_space, in_channels)
-            critic = QModel(network_name, 1, in_channels)
+            actor = ActorModel(network_name, action_space, state_channels)
+            critic = QModel(network_name, 1, state_channels, trade_state_channels)
             return actor, critic
         else:
-            model = QModel(network_name, action_space, in_channels)
+            model = QModel(network_name, action_space, state_channels, trade_state_channels)
             return model
     except KeyError:
         raise NetworkKeyNotFoundError(f"Network {network_name} not found in the all_models dictionary")
