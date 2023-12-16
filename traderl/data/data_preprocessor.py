@@ -140,6 +140,8 @@ def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> np.ndarra
 
     logging.debug(f"Data shape after scaling and splitting: {data.shape}")
 
+    return data_split
+
 
 def main(remote: bool, folder_path: str = None, symbols: list = None, financial_type: str = None):
     """
