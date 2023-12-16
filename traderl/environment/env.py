@@ -242,10 +242,10 @@ class Env:
                 # action: 1 -> buy(long position), -1 -> sell(short position), 0 -> hold(non position)
                 now_state = [state[[i]], self.trade_state.clone()]
                 if self.action_type == 'discrete':
-                    action = get_action(*now_state, train=train)
+                    action = get_action(now_state, train=train)
                     take_profit = stop_loss * 2
                 else:
-                    policy = get_action(*now_state, train=train)
+                    policy = get_action(now_state, train=train)
                     action = np.sign(policy)
                     take_profit = np.clip(stop_loss * np.abs(policy) * 2, 1, None)
 
