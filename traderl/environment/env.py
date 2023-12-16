@@ -108,7 +108,7 @@ class Env:
             A tuple containing the pip, old index, trade length, stop loss, and position size.
         """
         pip = 0
-        old_i = 0
+        old_i = i
         trade_length = 0
         stop_loss = np.clip(atr[i] * 2, self.min_stop_losses[self.symbol], self.max_stop_losses[self.symbol])
         position_size = int(self.asset * self.risk / stop_loss)
@@ -263,7 +263,7 @@ class Env:
                 trade_length += 1
                 pip += (open[i + 1] - open[i]) * action - (self.spread if trade_length == 1 else 0)
 
-                if action == 0:
+                if action == 1:
                     higher_pip = high[i] - open[old_i] - self.spread
                     lower_pip = low[i] - open[old_i] - self.spread
                 else:
