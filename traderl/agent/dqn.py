@@ -128,7 +128,7 @@ class DQN:
         #### Outputs:
 
         """
-        length = len(self.data["state"])
+        length = len(self.data["state"][0])
         total_steps = range(length)
         test_step = total_steps[int(length * 0.9):]
         train_step = total_steps[:test_step[0]]
