@@ -284,7 +284,7 @@ class Env:
                     is_stop = True
                     event = "stop trade"
                 else:
-                    is
+                    is_stop = False
 
                 if event is not None:
                     if action == 1:
