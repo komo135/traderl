@@ -282,6 +282,8 @@ class Env:
                 elif trade_length >= 50:
                     is_stop = True
                     event = "stop trade"
+                else:
+                    is_stop = False
 
                 if event is not None:
                     if action == 1:
