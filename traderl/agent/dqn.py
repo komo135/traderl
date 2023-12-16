@@ -198,29 +198,6 @@ class DQN:
         self.model.to(self.device)
         self.target_model.to(self.device)
 
-    def get_action(self, state: tuple[torch.Tensor, torch.Tensor], train=False) -> int:
-        """
-        ### Returns an action based on the current state.
-
-        #### Parameters:
-        - `state` (tuple[torch.tensor, torch.tensor]): The current state of the environment.
-        - `train` (bool): Whether the agent is in training mode.
-
-        #### Outputs:
-        - `action` (int): The action to take.
-
-        #### Example:
-        ```python
-        action = dqn_agent.get_action(state, train=True)
-        ```
-        """
-        if train and np.random.rand() < self.epsilon:
-            action = np.random.randint(self.action_space)
-        else:
-            with torch.no_grad():
-                action = self.model(*state).max(1)[1].item()
-        return action
-
     @staticmethod
     def get_data() -> tuple[int, dict]:
         """
@@ -288,6 +265,29 @@ class DQN:
             'i': self.i
         }, self.save_path)
 
+    def get_action(self, state: tuple[torch.Tensor, torch.Tensor], train=False) -> int:
+        """
+        ### Returns an action based on the current state.
+
+        #### Parameters:
+        - `state` (tuple[torch.tensor, torch.tensor]): The current state of the environment.
+        - `train` (bool): Whether the agent is in training mode.
+
+        #### Outputs:
+        - `action` (int): The action to take.
+
+        #### Example:
+        ```python
+        action = dqn_agent.get_action(state, train=True)
+        ```
+        """
+        if train and np.random.rand() < self.epsilon:
+            action = np.random.randint(self.action_space)
+        else:
+            with torch.no_grad():
+                action = self.model(*state).max(1)[1].item()
+        return action
+
     def train(self, num_iterations=1000000):
         states, trading_states, actions, rewards, dons = self._initialize_deques()
         start, end = self._get_start_end()
@@ -348,7 +348,11 @@ class DQN:
                         self.update()
 
                     if (self.i + 1) % 1000 == 0:
-                        self.evolution.evolute(self.get_action, self.test_step[0], self.test_step[-1])
+                        test_end = self.test_step[-1]
+                        if (self.test_step[-1] - self.test_step[0]) > 10000:
+                            test_start = test_end - 10000
+
+                        self.evolution.evolute(self.get_action, test_start, test_end)
 
             if (self.i + 1) % 10000 == 0:
                 self.save_agent()
@@ -363,7 +367,7 @@ class DQN:
         """
         state, action, reward, next_state, done = self.memory.sample(self.batch_size)
 
-        q_values = self.model(*state).gather(1, action.unsqueeze(1)).squeeze(1)
+        q_values = self.model(*state).gather(1, action.long()).squeeze(1)
 
         with torch.no_grad():
             best_actions = self.model(*next_state).max(1)[1]
