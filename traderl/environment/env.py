@@ -244,8 +244,8 @@ class Env:
                 # action: 1 -> buy(long position), -1 -> sell(short position), 0 -> hold(non position)
                 now_state = [state[[i]], self.trade_state.clone()]
                 if self.action_type == 'discrete':
-                    action = get_action(now_state, train=train)
-                    action = 1 if action == 0 else -1 if action == 1 else 0
+                    policy = get_action(now_state, train=train)
+                    action = 1 if policy == 0 else -1 if policy == 1 else 0
                     take_profit = stop_loss * 2
                 else:
                     policy = get_action(now_state, train=train)
@@ -309,6 +309,6 @@ class Env:
                         profit_factor, expected_ratio, days = self.reset_trade()
 
                 if self.action_type == 'discrete':
-                    yield now_state[0], now_state[1], action, reward, done
+                    yield now_state[0], now_state[1], policy, reward, done
                 else:
                     yield now_state[0], now_state[1], policy, reward, done
