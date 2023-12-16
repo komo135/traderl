@@ -164,3 +164,7 @@ cython_debug/
 
 # github access token
 .github_token
+
+tmp/
+
+.DS_Store

@@ -4,6 +4,11 @@ from traderl.model import all_models
 __all__ = ["build_model"]
 
 
+class NetworkKeyNotFoundError(Exception):
+    """Raised when the network key is not found in the all_models dictionary"""
+    pass
+
+
 class QModel(torch.nn.Module):
     def __init__(self, network_name, action_space, in_channels):
         super().__init__()
@@ -69,10 +74,13 @@ def build_model(network_name, action_space, in_channels, actor_critic=False) -> 
     Returns:
         torch.nn.Module | tuple[torch.nn.Module, torch.nn.Module]: The model or a tuple of actor and critic models.
     """
-    if actor_critic:
-        actor = ActorModel(network_name, action_space, in_channels)
-        critic = QModel(network_name, 1, in_channels)
-        return actor, critic
-    else:
-        model = QModel(network_name, action_space, in_channels)
-        return model
+    try:
+        if actor_critic:
+            actor = ActorModel(network_name, action_space, in_channels)
+            critic = QModel(network_name, 1, in_channels)
+            return actor, critic
+        else:
+            model = QModel(network_name, action_space, in_channels)
+            return model
+    except KeyError:
+        raise NetworkKeyNotFoundError(f"Network {network_name} not found in the all_models dictionary")
