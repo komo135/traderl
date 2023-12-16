@@ -304,7 +304,6 @@ class DQN:
 
             if returns is None:
                 num_update_data += 1
-                print(num_update_data)
                 print(f"symbol: {self.env.symbol}, start: {start}, end: {end}")
                 print(f"total pip: {self.env.total_pip}, asset: {self.env.asset}")
                 states, trading_states, actions, rewards, dons = self._initialize_deques()
