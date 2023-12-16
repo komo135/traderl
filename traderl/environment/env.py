@@ -245,6 +245,7 @@ class Env:
                 now_state = [state[[i]], self.trade_state.clone()]
                 if self.action_type == 'discrete':
                     action = get_action(now_state, train=train)
+                    action = 1 if action == 0 else -1 if action == 1 else 0
                     take_profit = stop_loss * 2
                 else:
                     policy = get_action(now_state, train=train)
@@ -283,7 +284,7 @@ class Env:
                     is_stop = True
                     event = "stop trade"
                 else:
-                    is_stop = False
+                    is
 
                 if event is not None:
                     if action == 1:
