@@ -300,7 +300,7 @@ class DQN:
         for _ in range(num_iterations):
             returns = next(step, None) if done == 1 else None
             self.epsilon *= 0.99999  # Adjust the decay rate as needed
-            self.epsilon = max(self.epsilon, 0.01)  # Ensure epsilon does not go below a certain threshold
+            self.epsilon = max(self.epsilon, 0.05)  # Ensure epsilon does not go below a certain threshold
 
             if returns is None:
                 num_update_data += 1
