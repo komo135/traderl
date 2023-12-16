@@ -138,7 +138,7 @@ def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> np.ndarra
     data_split = np.array(data_split)
     data_split = np.transpose(data_split, (0, 2, 1))
 
-    logging.debug(f"Data shape after scaling and splitting: {data.shape}")
+    logging.debug(f"Data shape after scaling and splitting: {data_split.shape}")
 
     return data_split
 
