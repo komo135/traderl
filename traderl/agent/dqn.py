@@ -303,6 +303,7 @@ class DQN:
             self.epsilon = max(self.epsilon, 0.01)  # Ensure epsilon does not go below a certain threshold
 
             if returns is None:
+                i += 1
                 print(i)
                 print(f"symbol: {self.env.symbol}, start: {start}, end: {end}")
                 print(f"total pip: {self.env.total_pip}, asset: {self.env.asset}")
@@ -314,7 +315,6 @@ class DQN:
                     self.env.symbol -= 1
                 step = self.env.step(self.get_action, start, end, True)
                 done = 1
-                i += 1
             else:
                 state, trading_state, action, reward, done = returns
 
