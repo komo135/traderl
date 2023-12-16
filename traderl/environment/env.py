@@ -186,7 +186,7 @@ class Env:
         atr = self.atr[self.symbol, start_index:end_index]
 
         default_event = ["no event" for _ in range(len(state))]
-        self.trade_event = {"long": default_event.copy(), "short": default_event.copy()}
+        self.trade_event = {"open": default_event.copy(), "long": default_event.copy(), "short": default_event.copy()}
 
         return state, open, high, low, atr
 
@@ -252,9 +252,9 @@ class Env:
                     take_profit = np.clip(stop_loss * np.abs(policy) * 2, 1, None)
 
                 if action == 1:
-                    self.trade_event["long"][i] = "long"
+                    self.trade_event["open"][i] = "long"
                 elif action == -1:
-                    self.trade_event["short"][i] = "short"
+                    self.trade_event["open"][i] = "short"
 
             if action == 0:
                 skip -= 1
