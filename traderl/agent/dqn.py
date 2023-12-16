@@ -347,16 +347,16 @@ class DQN:
                     if self.memory.index % self.replay_ratio == 0 and len(self.memory) > self.batch_size * 10:
                         self.update()
 
-                    if (self.i + 1) % 10000 == 0:
-                        test_end = self.test_step[-1]
-                        if (self.test_step[-1] - self.test_step[0]) > 10000:
-                            test_start = test_end - 10000
+                        if (self.i + 1) % 10000 == 0:
+                            test_end = self.test_step[-1]
+                            if (self.test_step[-1] - self.test_step[0]) > 10000:
+                                test_start = test_end - 10000
 
-                        self.evolution.evolute(self.get_action, test_start, test_end)
+                            self.evolution.evolute(self.get_action, test_start, test_end)
 
-            if (self.i + 1) % 100000 == 0:
-                self.save_agent()
-                clear_output()
+                        if (self.i + 1) % 100000 == 0:
+                            self.save_agent()
+                            clear_output()
 
     def update(self):
         """
