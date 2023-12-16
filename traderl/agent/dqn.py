@@ -296,6 +296,9 @@ class DQN:
 
         for i in range(num_iterations):
             returns = next(step, None)
+            self.epsilon *= 0.999  # Adjust the decay rate as needed
+            self.epsilon = max(self.epsilon, 0.01)  # Ensure epsilon does not go below a certain threshold
+
             if returns is None or done == 0:
                 print(f"symbol: {self.env.symbol}, start: {start}, end: {end}")
                 print(f"total pip: {self.env.total_pip}, asset: {self.env.asset}")
