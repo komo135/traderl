@@ -239,7 +239,7 @@ class Env:
                                         tentative_update=True)
 
                 pip, old_i, trade_length, stop_loss, position_size = self.start_trade(i, atr)
-                skip = 2
+                skip = 5
 
                 # action: 1 -> buy(long position), -1 -> sell(short position), 0 -> hold(non position)
                 now_state = [state[[i]], self.trade_state.clone()]
