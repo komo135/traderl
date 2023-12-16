@@ -48,7 +48,7 @@ class Evolution:
         Reset the environment.
         """
         self.env.symbol = 0
-        self.trade_historys = []
+        self.trade_events = []
         self.total_pips = []
 
     def _plot(self, symbol: int, start: str, end: str):
@@ -124,7 +124,7 @@ class Evolution:
             step = self.env.step(get_action, strat, end)
             for _ in step:
                 pass
-            self.trade_historys.append(self.env.trade_history)
+            self.trade_events.append(self.env.trade_history)
             self.total_pips.append(self.env.total_pip)
 
         print_txt = ", ".join(f"{i}: {total_pip}" for i, total_pip in enumerate(self.total_pips))
