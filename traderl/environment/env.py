@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from traitlets import default
 
 
 class Env:
@@ -48,7 +49,7 @@ class Env:
         self.pips, self.win_pips, self.lose_pips = [[] for _ in range(3)]
         self.profits = []
         self.max_asset, self.asset_drawdown = self.asset, 1.0
-        self.trade_history = []
+        self.trade_event = {"long": [], "short": []}
 
         self.trade_state = torch.empty((1, 5, 30), dtype=torch.float32, device=self.device)
         self.state = torch.tensor(self.state, dtype=torch.float32, device=self.device)
@@ -184,7 +185,8 @@ class Env:
         low = self.low[self.symbol, start_index:end_index]
         atr = self.atr[self.symbol, start_index:end_index]
 
-        self.trade_history = np.array(["no event"] * len(state))
+        default_event = ["no event" for _ in range(len(state))]
+        self.trade_event = {"long": default_event.copy(), "short": default_event.copy()}
 
         return state, open, high, low, atr
 
@@ -249,7 +251,10 @@ class Env:
                     action = np.sign(policy)
                     take_profit = np.clip(stop_loss * np.abs(policy) * 2, 1, None)
 
-                self.trade_history[i] = "long" if action == 1 else "short" if action == -1 else "no event"
+                if action == 1:
+                    self.trade_event["long"][i] = "long"
+                elif action == -1:
+                    self.trade_event["short"][i] = "short"
 
             if action == 0:
                 skip -= 1
@@ -265,17 +270,24 @@ class Env:
                     higher_pip = open[old_i] - low[i] - self.spread
                     lower_pip = open[old_i] - high[i] - self.spread
 
+                event = None
                 if lower_pip <= -stop_loss:
                     pip = -stop_loss
                     is_stop = True
-                    self.trade_history[i] = "stop loss"
+                    event = "stop loss"
                 elif higher_pip >= take_profit:
                     pip = take_profit
                     is_stop = True
-                    self.trade_history[i] = "take profit"
+                    event = "take profit"
                 elif trade_length >= 50:
                     is_stop = True
-                    self.trade_history[i] = "stop trade"
+                    event = "stop trade"
+
+                if event is not None:
+                    if action == 1:
+                        self.trade_event["long"][i] = event
+                    elif action == -1:
+                        self.trade_event["short"][i] = event
 
             if is_stop:
                 self.stop_trade(pip, action, position_size)
