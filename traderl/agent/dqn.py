@@ -312,6 +312,7 @@ class DQN:
                 else:
                     self.env.symbol -= 1
                 step = self.env.step(self.get_action, start, end, True)
+                done = 1
                 i += 1
             else:
                 state, trading_state, action, reward, done = returns
