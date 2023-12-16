@@ -128,7 +128,7 @@ def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> np.ndarra
 
     # Scale the data
     scaler = RobustScaler()
-    data_scaled = scaler.fit_transform(data)
+    data_scaled = scaler.fit_transform(data_array)
 
     # Split the data into chunks of the specified window size
     data_split = []
