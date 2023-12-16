@@ -7,7 +7,7 @@ from IPython.display import clear_output
 from traderl.environment import Env
 from traderl.memory import Memory
 from traderl.model import build_model
-from common import Evolution
+from traderl.agent.common import Evolution
 
 
 class DQN:

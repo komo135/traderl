@@ -1,4 +1,4 @@
-from evolution import Evolution
+from traderl.agent.common.evolution import Evolution
 
 
 __all__ = [
