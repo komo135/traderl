@@ -23,6 +23,8 @@ class CnnNet(nn.Module):
 
 # モジュールのファクトリ関数
 def create_cnnnet(in_channels, out_channels=32, **kwargs):
+    assert isinstance(in_channels, int), "in_channels must be int"
+    assert isinstance(out_channels, int), "out_channels must be int"
     return CnnNet(in_channels, out_channels, **kwargs)
 
 
