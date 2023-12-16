@@ -176,6 +176,7 @@ def main(remote: bool, folder_path: str = None, symbols: list = None, financial_
 
     # Stack state data
     state_datas = np.stack(state_datas, axis=0)
+    logging.debug(f"State data shape: {state_datas.shape}")
 
     # Split market data into OHLC and stack
     opens = np.stack([data['open'].values for data in market_datas], axis=0)
@@ -185,7 +186,9 @@ def main(remote: bool, folder_path: str = None, symbols: list = None, financial_
     atrs = np.stack([data['atr'].values for data in market_datas], axis=0)
 
     # Save state data and OHLC data in .npz format
+    logging.info("Saving data.")
     np.savez('data.npz', state=state_datas, open=opens, high=highs, low=lows, close=closes, atr=atrs)
+    logging.info("Data saved.")
 
     logging.debug("Main function completed.")
 
