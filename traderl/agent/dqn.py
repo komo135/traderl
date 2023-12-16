@@ -339,7 +339,7 @@ class DQN:
                     if self.memory.index % self.replay_ratio == 0 and len(self.memory) > self.batch_size * 10:
                         self.update()
 
-                    if self.i % 1000 == 0:
+                    if (self.i + 1) % 1000 == 0:
                         self.evolution.evolute(self.get_action, self.test_step[0], self.test_step[-1])
 
             if (i + 1) % 100000 == 0:
