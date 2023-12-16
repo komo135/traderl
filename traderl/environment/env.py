@@ -287,11 +287,11 @@ class Env:
 
             if is_stop:
                 if days >= self.sim_limit or self.asset_drawdown <= self.sim_stop_cond:
-                    print(days, self.asset_drawdown)
                     done = 0
                     reward = (self.asset / self.initial_asset) * ((profit_factor + expected_ratio) / 2) * 100
 
-                    profit_factor, expected_ratio, days = self.reset_trade()
+                    if not train:
+                        profit_factor, expected_ratio, days = self.reset_trade()
 
                 if self.action_type == 'discrete':
                     yield now_state[0], now_state[1], action, reward, done
