@@ -56,7 +56,7 @@ class DQN:
                  action_space: int = 3,
                  learning_rate: float = 1e-4,
                  gamma: float = 0.99,
-                 epsilon: float = 1.0,
+                 epsilon: float = 0.9,
                  replay_buffer_size: float = 1e6,
                  replay_ratio: int = 4,
                  target_update: int = 100,
@@ -154,7 +154,7 @@ class DQN:
 
     def _get_start_end(self):
         start_or_end = np.random.randint(0, 2)
-        period = 50000
+        period = 10000
         if start_or_end == 0:
             start = np.random.randint(0, self.train_step[-1] - period)
             end = start + period
@@ -304,8 +304,8 @@ class DQN:
 
         for _ in range(num_iterations):
             returns = next(step, None) if done == 1 else None
-            self.epsilon *= 0.99999  # Adjust the decay rate as needed
-            self.epsilon = max(self.epsilon, 0.01)  # Ensure epsilon does not go below a certain threshold
+            self.epsilon *= 0.9999995  # Adjust the decay rate as needed
+            self.epsilon = max(self.epsilon, 0.05)  # Ensure epsilon does not go below a certain threshold
 
             if returns is None:
                 num_update_data += 1
@@ -329,14 +329,12 @@ class DQN:
                 dons.append(done)
 
                 if len(states) == self.n_step + 1:
-                    # Calculate n_reward in multiple steps for clarity
                     n_reward = 0
                     for i in range(self.n_step - 1):
                         n_reward += self.gamma ** i * rewards[i]
 
                     n_state = states[-1]
                     n_trading_state = trading_states[-1]
-                    n_done = dons[-1]
 
                     # Store the first state, trading state, action, and done flag in temporary variables
                     first_state = states[0]
@@ -344,7 +342,10 @@ class DQN:
                     first_action = actions[0]
 
                     self.memory.append(first_state, first_trading_state, first_action,
-                                       n_reward, n_state, n_trading_state, n_done)
+                                       n_reward, n_state, n_trading_state, 1)
+
+                    if done == 0:
+                        self.memory.append(state, trading_state, action, reward, state, trading_state, 0)
 
                     # Add a comment to explain the condition for calling self.update()
                     # Update the network parameters if the current index of the memory is divisible by the replay ratio
@@ -371,6 +372,7 @@ class DQN:
         #### Outputs:
         None. Updates the `self.model` parameters based on the computed loss.
         """
+        self.optimizer.zero_grad()
         state, action, reward, next_state, done = self.memory.sample(self.batch_size)
 
         q_values = self.model(*state).gather(1, action.long()).squeeze(1)
@@ -379,12 +381,12 @@ class DQN:
             best_actions = self.model(*next_state).max(1)[1]
             next_q_values = self.target_model(*next_state).gather(1, best_actions.unsqueeze(1)).squeeze(1)
 
-        expected_q_values = reward + self.gamma * next_q_values * (1 - done)
+        expected_q_values = reward + self.gamma * next_q_values * done
 
         loss = (q_values - expected_q_values).pow(2).mean()
 
-        self.optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_value_(self.model.parameters(), 1.0)
         self.optimizer.step()
 
         self.i += 1

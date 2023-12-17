@@ -12,7 +12,7 @@ class Env:
     spread = 10  # Spread
 
     sim_limit = 10000  # Simulation limit
-    sim_stop_cond = 0.5  # Simulation stop condition (0.75 means 75% of max asset)
+    sim_stop_cond = 0.1  # Simulation stop condition (0.75 means 75% of max asset)
 
     def __init__(self, action_type: str, data: dict, device: torch.device):
         """
@@ -48,6 +48,7 @@ class Env:
         self.total_pip = 0
         self.pips, self.win_pips, self.lose_pips = [[] for _ in range(3)]
         self.profits = []
+        self.actions = []
         self.max_asset, self.asset_drawdown = self.asset, 1.0
         self.trade_event = {"long": [], "short": []}
 
@@ -62,6 +63,7 @@ class Env:
         self.total_pip = 0
         self.pips, self.win_pips, self.lose_pips = [[] for _ in range(3)]
         self.profits = []
+        self.actions = []
 
         self.trade_state *= 0
 
@@ -257,6 +259,8 @@ class Env:
                 elif action == -1:
                     self.trade_event["open"][i] = "short"
 
+            self.actions.append(action)
+
             if action == 0:
                 skip -= 1
                 is_stop = skip <= 0
@@ -303,7 +307,11 @@ class Env:
             if is_stop:
                 if days >= self.sim_limit or self.asset_drawdown <= self.sim_stop_cond:
                     done = 0
-                    reward = (self.asset / self.initial_asset) * ((profit_factor + expected_ratio) / 2) * 100
+
+                    reward = (self.asset / self.initial_asset) * 100
+                    add_reward = ((profit_factor + expected_ratio) / 2)
+                    if add_reward >= 1:
+                        reward *= add_reward
 
                     if not train:
                         profit_factor, expected_ratio, days = self.reset_trade()

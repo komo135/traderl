@@ -53,8 +53,8 @@ class Memory:
         self.new_trading_states = torch.empty((self.capacity, *self.trading_state_shape),
                                               dtype=torch.float32, device=self.device)
         self.actions = torch.empty((self.capacity, self.action_shape), dtype=self.action_type, device=self.device)
-        self.rewards = torch.empty((self.capacity, 1), dtype=torch.float32, device=self.device)
-        self.dones = torch.empty((self.capacity, 1), dtype=torch.float32, device=self.device)
+        self.rewards = torch.empty((self.capacity), dtype=torch.float32, device=self.device)
+        self.dones = torch.empty((self.capacity), dtype=torch.float32, device=self.device)
 
         self.index = 0
         self.full = False
@@ -82,6 +82,7 @@ class Memory:
         ```
         """
 
+        self.states[self.index] = state
         self.trading_states[self.index] = trading_state
         self.actions[self.index] = action
         self.rewards[self.index] = reward
