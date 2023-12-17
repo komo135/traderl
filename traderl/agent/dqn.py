@@ -333,6 +333,8 @@ class DQN:
                     n_reward = 0
                     for i in range(self.n_step - 1):
                         n_reward += self.gamma ** i * rewards[i]
+                    if done == 0:
+                        n_reward = reward
 
                     n_state = states[-1]
                     n_trading_state = trading_states[-1]
