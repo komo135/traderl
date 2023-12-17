@@ -87,7 +87,7 @@ class Evolution:
 
             if event == "long" or event == "short":
                 indices = pd.Index([i for i, e in enumerate(trade_event["open"][-500:]) if e == event])
-                ax.plot(indices, ohlc_df['close'][indices], marker, markersize=10, color=color, label=event)
+                ax.plot(indices, ohlc_df['open'][indices], marker, markersize=10, color=color, label=event)
             elif event == "stop trade":
                 indices = pd.Index([i for i, e in enumerate(long_event[-500:]) if e == event])
                 ax.plot(indices, ohlc_df['close'][indices], marker, markersize=10, color=color, label=event)

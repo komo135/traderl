@@ -286,9 +286,6 @@ class Env:
                 else:
                     is_stop = False
 
-                print(
-                    f"event: {event}, action: {action}, pip: {pip}, higher_pip: {higher_pip}, lower_pip: {lower_pip}, open: {open[i]}, high: {high[i]}, low: {low[i]}")
-
                 if event is not None:
                     if action == 1:
                         self.trade_event["long"][i] = event
