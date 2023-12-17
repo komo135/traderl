@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from traitlets import default
+from collections import deque
 
 
 class Env:
@@ -181,16 +181,19 @@ class Env:
         tuple
             A tuple containing the state, open, high, low, and atr arrays.
         """
-        state = self.state[self.symbol, start_index:end_index]
+        state = self.state[self.symbol, start_index:end_index].clone()
         open = self.open[self.symbol, start_index:end_index]
         high = self.high[self.symbol, start_index:end_index]
         low = self.low[self.symbol, start_index:end_index]
         atr = self.atr[self.symbol, start_index:end_index]
 
+        open_position = deque([0] * state.shape[-1], maxlen=state.shape[-1])
+        close_position = deque([0] * state.shape[-1], maxlen=state.shape[-1])
+
         default_event = ["no event" for _ in range(len(state))]
         self.trade_event = {"open": default_event.copy(), "long": default_event.copy(), "short": default_event.copy()}
 
-        return state, open, high, low, atr
+        return state, open, high, low, atr, open_position, close_position
 
     def update_trade_state(self, update_values: list, tentative_update=False):
         """
@@ -225,7 +228,7 @@ class Env:
             Whether the step is for training or not, by default False.
         """
         self.reset_env()
-        state, open, high, low, atr = self.get_data(start_index, end_index)
+        state, open, high, low, atr, open_position, close_position = self.get_data(start_index, end_index)
         profit_factor, expected_ratio, days = self.reset_trade()
 
         is_stop = True
@@ -244,6 +247,8 @@ class Env:
                 skip = 5
 
                 # action: 1 -> buy(long position), -1 -> sell(short position), 0 -> hold(non position)
+                state[i, -2] = torch.tensor(open_position, dtype=torch.float32, device=self.device)
+                state[i, -1] = torch.tensor(close_position, dtype=torch.float32, device=self.device)
                 now_state = [state[[i]], self.trade_state.clone()]
                 if self.action_type == 'discrete':
                     policy = get_action(now_state, train=train)
@@ -260,10 +265,12 @@ class Env:
                     self.trade_event["open"][i] = "short"
 
             self.actions.append(action)
+            open_position.append(action)
 
             if action == 0:
                 skip -= 1
                 is_stop = skip <= 0
+                close_position.append(0)
             else:
                 trade_length += 1
                 pip += (open[i + 1] - open[i]) * action - (self.spread if trade_length == 1 else 0)
@@ -280,15 +287,19 @@ class Env:
                     pip = -stop_loss
                     is_stop = True
                     event = "stop loss"
+                    close_position.append(-1)
                 elif higher_pip >= take_profit:
                     pip = take_profit
                     is_stop = True
                     event = "take profit"
+                    close_position.append(1)
                 elif trade_length >= 50:
                     is_stop = True
                     event = "stop trade"
+                    close_position.append(0)
                 else:
                     is_stop = False
+                    close_position.append(0)
 
                 if event is not None:
                     if action == 1:

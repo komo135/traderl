@@ -103,6 +103,12 @@ def add_technical_indicators(data: pd.DataFrame) -> pd.DataFrame:
     # Average True Range
     data['atr'] = ta.volatility.average_true_range(data['high'], data['low'], data['close'])
 
+    # open position
+    data['open_position'] = 0
+
+    # close position
+    data['close_position'] = 0
+
     # Drop rows with NaN values
     data = data.dropna()
 
@@ -110,7 +116,7 @@ def add_technical_indicators(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> np.ndarray:
+def scale_and_split_data(data: pd.DataFrame, window_size: int = 50) -> np.ndarray:
     """
     Scale and split the data into chunks of a specified window size.
 
@@ -124,7 +130,7 @@ def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> np.ndarra
     logging.debug(f"Scaling and splitting data. Window size: {window_size}")
 
     # Select specific columns for the scaled data
-    data_array = np.array(data[["ema_5_10_crossover", "ema_200", "rsi", "macd", "b_pband", "b_wband", "atr"]])
+    data_array = np.array(data[["rsi", "macd", "b_pband", "open_position", "close_position"]])
 
     # Scale the data
     scaler = RobustScaler()
