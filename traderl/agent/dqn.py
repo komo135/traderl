@@ -154,7 +154,7 @@ class DQN:
 
     def _get_start_end(self):
         start_or_end = np.random.randint(0, 2)
-        period = 50000
+        period = 10000
         if start_or_end == 0:
             start = np.random.randint(0, self.train_step[-1] - period)
             end = start + period
