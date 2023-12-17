@@ -107,11 +107,8 @@ class DQN:
         self.test_env = Env("discrete", self.data, self.device)
 
         self.evolution = Evolution(self.test_env)
-        self.evolution_history = []
 
-        path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.save_path = f"{path}/save_agent/{self.name}.pt"
-
+        self.save_path = f"traderl/save_agent/{self.name}.pt"
         if self.load:
             self.load_agent()
         else:
@@ -251,7 +248,6 @@ class DQN:
         self.memory = checkpoint['memory']
         self.epsilon = checkpoint['epsilon']
         self.i = checkpoint['i']
-        self.evolution_history = checkpoint['evolution_history']
 
     def save_agent(self):
         """
@@ -266,8 +262,7 @@ class DQN:
             'optimizer_state_dict': self.optimizer.state_dict(),
             'memory': self.memory,
             'epsilon': self.epsilon,
-            'i': self.i,
-            'evolution_history': self.evolution_history
+            'i': self.i
         }, self.save_path)
 
     def get_action(self, state: tuple[torch.Tensor, torch.Tensor], train=False) -> int:
@@ -358,7 +353,6 @@ class DQN:
                                 test_start = test_end - 10000
 
                             self.evolution.evolute(self.get_action, test_start, test_end)
-                            self.evolution_history.append(np.sum(self.evolution.total_pips))
 
                         if (self.i + 1) % 100000 == 0:
                             self.save_agent()
