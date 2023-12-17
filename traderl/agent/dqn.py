@@ -379,7 +379,7 @@ class DQN:
             best_actions = self.model(*next_state).max(1)[1]
             next_q_values = self.target_model(*next_state).gather(1, best_actions.unsqueeze(1)).squeeze(1)
 
-        expected_q_values = reward + self.gamma * next_q_values * (1 - done)
+        expected_q_values = reward + self.gamma * next_q_values * done
 
         loss = (q_values - expected_q_values).pow(2).mean()
 
