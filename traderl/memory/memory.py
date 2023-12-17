@@ -82,6 +82,7 @@ class Memory:
         ```
         """
 
+        self.states[self.index] = state
         self.trading_states[self.index] = trading_state
         self.actions[self.index] = action
         self.rewards[self.index] = reward
