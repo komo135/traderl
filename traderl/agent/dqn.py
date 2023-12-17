@@ -121,8 +121,8 @@ class DQN:
                 self.env.trade_state.shape[-2:],
                 1, torch.int32, self.device
             )
-            self.build_model()
-            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        self.build_model()
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
     def _split_data(self):
         """
@@ -245,9 +245,9 @@ class DQN:
         None. Loads the agent from disk.
         """
         checkpoint = torch.load(self.save_path)
-        self.model.load_state_dict(checkpoint['model_state_dict'])
-        self.target_model.load_state_dict(checkpoint['target_model_state_dict'])
-        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        self.model = checkpoint['model']
+        self.target_model = checkpoint['target_model']
+        self.optimizer = checkpoint['optimizer']
         self.memory = checkpoint['memory']
         self.epsilon = checkpoint['epsilon']
         self.i = checkpoint['i']
@@ -261,9 +261,9 @@ class DQN:
         None. Saves the agent to disk.
         """
         torch.save({
-            'model_state_dict': self.model.state_dict(),
-            'target_model_state_dict': self.target_model.state_dict(),
-            'optimizer_state_dict': self.optimizer.state_dict(),
+            'model': self.model,
+            'target_model': self.target_model,
+            'optimizer': self.optimizer,
             'memory': self.memory,
             'epsilon': self.epsilon,
             'i': self.i,

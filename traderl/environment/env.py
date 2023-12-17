@@ -52,7 +52,7 @@ class Env:
         self.max_asset, self.asset_drawdown = self.asset, 1.0
         self.trade_event = {"long": [], "short": []}
 
-        self.trade_state = torch.empty((1, 5, 30), dtype=torch.float32, device=self.device)
+        self.trade_state = torch.empty((1, 2, 30), dtype=torch.float32, device=self.device)
         self.state = torch.tensor(self.state, dtype=torch.float32, device=self.device)
 
     def reset_env(self):
@@ -81,7 +81,6 @@ class Env:
             A tuple containing the profit factor, expected ratio, and number of days.
         """
         self.asset = self.initial_asset
-        self.total_pip = 0
         self.pips, self.win_pips, self.lose_pips = [[] for _ in range(3)]
         self.profits = []
         self.max_asset, self.asset_drawdown = self.asset, 1.0
@@ -234,13 +233,14 @@ class Env:
         is_stop = True
         now_state = [0, 0]
 
+        hit_point = 20
+
         for i in range(len(state) - 1):
             done, reward = 1, 0
             days += 1
 
             if is_stop:
-                self.update_trade_state([days / self.sim_limit, profit_factor, expected_ratio,
-                                         self.asset_drawdown, self.asset / self.initial_asset * 0.1],
+                self.update_trade_state([days / self.sim_limit, hit_point / 100],
                                         tentative_update=True)
 
                 pip, old_i, trade_length, stop_loss, position_size = self.start_trade(i, atr)
@@ -271,6 +271,9 @@ class Env:
                 skip -= 1
                 is_stop = skip <= 0
                 close_position.append(0)
+
+                if is_stop:
+                    hit_point -= 0.25
             else:
                 trade_length += 1
                 pip += (open[i + 1] - open[i]) * action - (self.spread if trade_length == 1 else 0)
@@ -288,18 +291,30 @@ class Env:
                     is_stop = True
                     event = "stop loss"
                     close_position.append(-1)
+
+                    add_hit_point = -1
                 elif higher_pip >= take_profit:
                     pip = take_profit
                     is_stop = True
                     event = "take profit"
                     close_position.append(1)
+
+                    add_hit_point = 1
                 elif trade_length >= 50:
                     is_stop = True
                     event = "stop trade"
-                    close_position.append(0)
+                    close_position.append(np.sign(pip))
+
+                    add_hit_point = 0.5 if pip >= 0 else -0.5
                 else:
                     is_stop = False
                     close_position.append(0)
+
+                if is_stop:
+                    if self.action_type == "continue":
+                        add_hit_point *= np.abs(policy)
+
+                    hit_point += add_hit_point
 
                 if event is not None:
                     if action == 1:
@@ -307,25 +322,21 @@ class Env:
                     elif action == -1:
                         self.trade_event["short"][i] = event
 
+            hit_point = np.clip(hit_point, 0, 100)
+
             if is_stop:
                 self.stop_trade(pip, action, position_size)
-                profit_factor, expected_ratio = self.get_metrics()
+                # profit_factor, expected_ratio = self.get_metrics()
 
             if days % 100 == 0:
-                self.update_trade_state([days / self.sim_limit, profit_factor, expected_ratio,
-                                         self.asset_drawdown, self.asset / self.initial_asset * 0.1])
+                self.update_trade_state([days / self.sim_limit, hit_point / 100])
 
             if is_stop:
-                if days >= self.sim_limit or self.asset_drawdown <= self.sim_stop_cond:
+                reward = 0.1 + hit_point / 100
+                if days >= self.sim_limit or hit_point == 0:
                     done = 0
-
-                    reward = (self.asset / self.initial_asset) * 100
-                    add_reward = ((profit_factor + expected_ratio) / 2)
-                    if add_reward >= 1:
-                        reward *= add_reward
-
                     if not train:
-                        profit_factor, expected_ratio, days = self.reset_trade()
+                        _, _, days = self.reset_trade()
 
                 if self.action_type == 'discrete':
                     yield now_state[0], now_state[1], policy, reward, done
