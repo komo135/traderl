@@ -109,7 +109,9 @@ class DQN:
         self.evolution = Evolution(self.test_env)
         self.evolution_history = []
 
-        self.save_path = f"traderl/save_agent/{self.name}.pt"
+        path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.save_path = f"{path}/save_agent/{self.name}.pt"
+
         if self.load:
             self.load_agent()
         else:
