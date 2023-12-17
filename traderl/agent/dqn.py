@@ -329,9 +329,6 @@ class DQN:
                 dons.append(done)
 
                 if len(states) == self.n_step + 1:
-                    if done == 0:
-                        self.memory.append(state, trading_state, action, reward, state, trading_state, 0)
-
                     n_reward = 0
                     for i in range(self.n_step - 1):
                         n_reward += self.gamma ** i * rewards[i]
@@ -346,6 +343,9 @@ class DQN:
 
                     self.memory.append(first_state, first_trading_state, first_action,
                                        n_reward, n_state, n_trading_state, 1)
+
+                    if done == 0:
+                        self.memory.append(state, trading_state, action, reward, state, trading_state, 0)
 
                     # Add a comment to explain the condition for calling self.update()
                     # Update the network parameters if the current index of the memory is divisible by the replay ratio
