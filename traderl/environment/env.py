@@ -271,6 +271,9 @@ class Env:
                     higher_pip = open[old_i] - low[i] - self.spread
                     lower_pip = open[old_i] - high[i] - self.spread
 
+                print(
+                    f"action: {action}, pip: {pip}, higher_pip: {higher_pip}, lower_pip: {lower_pip}, open: {open[i]}, high: {high[i]}, low: {low[i]}")
+
                 event = None
                 if lower_pip <= -stop_loss:
                     pip = -stop_loss
