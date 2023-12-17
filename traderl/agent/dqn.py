@@ -330,11 +330,12 @@ class DQN:
 
                 if len(states) == self.n_step + 1:
                     # Calculate n_reward in multiple steps for clarity
-                    n_reward = 0
-                    for i in range(self.n_step - 1):
-                        n_reward += self.gamma ** i * rewards[i]
                     if done == 0:
                         n_reward = reward
+                    else:
+                        n_reward = 0
+                        for i in range(self.n_step - 1):
+                            n_reward += self.gamma ** i * rewards[i]
 
                     n_state = states[-1]
                     n_trading_state = trading_states[-1]
