@@ -372,6 +372,7 @@ class DQN:
         #### Outputs:
         None. Updates the `self.model` parameters based on the computed loss.
         """
+        self.optimizer.zero_grad()
         state, action, reward, next_state, done = self.memory.sample(self.batch_size)
 
         q_values = self.model(*state).gather(1, action.long()).squeeze(1)
@@ -384,8 +385,8 @@ class DQN:
 
         loss = (q_values - expected_q_values).pow(2).mean()
 
-        self.optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_value_(self.model.parameters(), 1.0)
         self.optimizer.step()
 
         self.i += 1
