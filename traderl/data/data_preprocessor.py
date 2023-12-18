@@ -98,7 +98,7 @@ def add_technical_indicators(data: pd.DataFrame) -> pd.DataFrame:
     # Bollinger Bands
     BollingerBands = ta.volatility.BollingerBands(data['close'])
     data['b_pband'] = BollingerBands.bollinger_pband()
-    data['b_wband'] = BollingerBands.bollinger_wband()
+    data['b_wband'] = BollingerBands._hband - BollingerBands._lband
 
     # Average True Range
     data['atr'] = ta.volatility.average_true_range(data['high'], data['low'], data['close'])
@@ -130,7 +130,7 @@ def scale_and_split_data(data: pd.DataFrame, window_size: int = 50) -> np.ndarra
     logging.debug(f"Scaling and splitting data. Window size: {window_size}")
 
     # Select specific columns for the scaled data
-    data_array = np.array(data[["rsi", "macd", "b_pband", "open_position", "close_position"]])
+    data_array = np.array(data[["rsi", "macd", "b_pband", "b_wband"]])
 
     # Scale the data
     scaler = RobustScaler()
@@ -191,7 +191,7 @@ def main(remote: bool, folder_path: str = None, symbols: list = None, financial_
     highs = np.stack([data['high'].values for data in market_datas], axis=0)
     lows = np.stack([data['low'].values for data in market_datas], axis=0)
     closes = np.stack([data['close'].values for data in market_datas], axis=0)
-    atrs = np.stack([data['atr'].values for data in market_datas], axis=0)
+    atrs = np.stack([data['b_wband'].values for data in market_datas], axis=0)
 
     # Save state data and OHLC data in .npz format
     logging.info("Saving data.")

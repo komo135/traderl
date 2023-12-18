@@ -1,6 +1,6 @@
+from tracemalloc import start
 import numpy as np
 import torch
-from collections import deque
 
 
 class Env:
@@ -38,8 +38,8 @@ class Env:
         self.low = data['low']
         self.atr = data['atr']
 
-        self.min_stop_losses = np.array([np.mean(atr) for atr in self.atr])
-        self.max_stop_losses = np.array([np.quantile(atr, 0.99) * 2 for atr in self.atr])
+        self.min_stop_losses = np.array([np.median(atr) for atr in self.atr])
+        self.max_stop_losses = np.array([np.quantile(atr, 0.975) for atr in self.atr])
 
         self.symbols = self.open.shape[0]
         self.symbol = -1
@@ -111,7 +111,7 @@ class Env:
         pip = 0
         old_i = i
         trade_length = 0
-        stop_loss = np.clip(atr[i] * 2, self.min_stop_losses[self.symbol], self.max_stop_losses[self.symbol])
+        stop_loss = np.clip(atr[i] * 1, self.min_stop_losses[self.symbol], self.max_stop_losses[self.symbol])
         position_size = int(self.asset * self.risk / stop_loss)
         position_size = np.minimum(np.maximum(position_size, 0), 10000000)
 
@@ -186,13 +186,10 @@ class Env:
         low = self.low[self.symbol, start_index:end_index]
         atr = self.atr[self.symbol, start_index:end_index]
 
-        open_position = deque([0] * state.shape[-1], maxlen=state.shape[-1])
-        close_position = deque([0] * state.shape[-1], maxlen=state.shape[-1])
-
         default_event = ["no event" for _ in range(len(state))]
         self.trade_event = {"open": default_event.copy(), "long": default_event.copy(), "short": default_event.copy()}
 
-        return state, open, high, low, atr, open_position, close_position
+        return state, open, high, low, atr
 
     def update_trade_state(self, update_values: list, tentative_update=False):
         """
@@ -227,7 +224,7 @@ class Env:
             Whether the step is for training or not, by default False.
         """
         self.reset_env()
-        state, open, high, low, atr, open_position, close_position = self.get_data(start_index, end_index)
+        state, open, high, low, atr = self.get_data(start_index, end_index)
         profit_factor, expected_ratio, days = self.reset_trade()
 
         is_stop = True
@@ -247,13 +244,11 @@ class Env:
                 skip = 5
 
                 # action: 1 -> buy(long position), -1 -> sell(short position), 0 -> hold(non position)
-                state[i, -2] = torch.tensor(open_position, dtype=torch.float32, device=self.device)
-                state[i, -1] = torch.tensor(close_position, dtype=torch.float32, device=self.device)
                 now_state = [state[[i]], self.trade_state.clone()]
                 if self.action_type == 'discrete':
                     policy = get_action(now_state, train=train)
                     action = 1 if policy == 0 else -1 if policy == 1 else 0
-                    take_profit = stop_loss * 2
+                    take_profit = stop_loss * 1
                 else:
                     policy = get_action(now_state, train=train)
                     action = np.sign(policy)
@@ -265,18 +260,16 @@ class Env:
                     self.trade_event["open"][i] = "short"
 
             self.actions.append(action)
-            open_position.append(action)
 
             if action == 0:
                 skip -= 1
                 is_stop = skip <= 0
-                close_position.append(0)
 
                 if is_stop:
-                    hit_point -= 0.25
+                    hit_point -= 0.5
             else:
                 trade_length += 1
-                pip += (open[i + 1] - open[i]) * action - (self.spread if trade_length == 1 else 0)
+                pip = (open[i + 1] - open[old_i]) * action - self.spread
 
                 if action == 1:
                     higher_pip = high[i] - open[old_i] - self.spread
@@ -287,33 +280,24 @@ class Env:
 
                 event = None
                 if lower_pip <= -stop_loss:
+                    # if pip > 0:
+                    #     print(f"\nerror, s: {self.symbol}, pip: {pip}, lower_pip: {lower_pip}, higher_pip: {higher_pip}\n"
+                    #           f"i: {start_index + i}, old_i: {start_index + old_i}, open_i: {open[i]}, open_old_i: {open[old_i]}\n")
                     pip = -stop_loss
                     is_stop = True
                     event = "stop loss"
-                    close_position.append(-1)
-
-                    add_hit_point = -1
                 elif higher_pip >= take_profit:
                     pip = take_profit
                     is_stop = True
                     event = "take profit"
-                    close_position.append(1)
-
-                    add_hit_point = 1
                 elif trade_length >= 50:
                     is_stop = True
                     event = "stop trade"
-                    close_position.append(np.sign(pip))
-
-                    add_hit_point = 0.5 if pip >= 0 else -0.5
                 else:
                     is_stop = False
-                    close_position.append(0)
 
                 if is_stop:
-                    if self.action_type == "continue":
-                        add_hit_point *= np.abs(policy)
-
+                    add_hit_point = pip / stop_loss
                     hit_point += add_hit_point
 
                 if event is not None:
@@ -322,7 +306,7 @@ class Env:
                     elif action == -1:
                         self.trade_event["short"][i] = event
 
-            hit_point = np.clip(hit_point, 0, 100)
+            hit_point = np.clip(np.round(hit_point, 3), 0, 100)
 
             if is_stop:
                 self.stop_trade(pip, action, position_size)
@@ -332,7 +316,7 @@ class Env:
                 self.update_trade_state([days / self.sim_limit, hit_point / 100])
 
             if is_stop:
-                reward = 0.1 + hit_point / 100
+                reward = 1 + (hit_point - 20) / 8
                 if days >= self.sim_limit or hit_point == 0:
                     done = 0
                     if not train:

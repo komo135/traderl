@@ -121,8 +121,8 @@ class DQN:
                 self.env.trade_state.shape[-2:],
                 1, torch.int32, self.device
             )
-        self.build_model()
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+            self.build_model()
+            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
     def _split_data(self):
         """
@@ -304,8 +304,8 @@ class DQN:
 
         for _ in range(num_iterations):
             returns = next(step, None) if done == 1 else None
-            self.epsilon *= 0.9999995  # Adjust the decay rate as needed
-            self.epsilon = max(self.epsilon, 0.05)  # Ensure epsilon does not go below a certain threshold
+            self.epsilon *= 0.999999  # Adjust the decay rate as needed
+            self.epsilon = max(self.epsilon, 0.1)  # Ensure epsilon does not go below a certain threshold
 
             if returns is None:
                 num_update_data += 1
