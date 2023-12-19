@@ -138,15 +138,16 @@ def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> np.ndarra
 
     # Split the data into chunks of the specified window size
     data_split = []
-    for i in range(100, len(data_scaled) - window_size + 1):
-        data_split.append(data_scaled[i:i + window_size])
+    for i in range(window_size, len(data_scaled)):
+        data_split.append(data_scaled[i - window_size:i])
+    data = data[window_size:]
 
     data_split = np.array(data_split)
     data_split = np.transpose(data_split, (0, 2, 1))
 
     logging.debug(f"Data shape after scaling and splitting: {data_split.shape}")
 
-    return data_split
+    return data, data_split
 
 
 def main(remote: bool, folder_path: str = None, symbols: list = None, financial_type: str = None):
@@ -177,8 +178,10 @@ def main(remote: bool, folder_path: str = None, symbols: list = None, financial_
     for symbol in symbols:
         data = load_data(remote, symbol=symbol)
         data = preprocess_data(data, symbol, financial_type)
+        data, data_split = scale_and_split_data(data)
+
         market_datas.append(data)
-        state_datas.append(scale_and_split_data(data))
+        state_datas.append(data_split)
     logging.debug(f"Number of items in state_datas: {len(state_datas)}")
     logging.debug(f"Shapes of items in state_datas: {[item.shape for item in state_datas]}")
 
