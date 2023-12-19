@@ -52,7 +52,7 @@ class Env:
         self.max_asset, self.asset_drawdown = self.asset, 1.0
         self.trade_event = {"long": [], "short": []}
 
-        self.trade_state = torch.empty((1, 2, 30), dtype=torch.float32, device=self.device)
+        self.trade_state = torch.empty((1, 4, 50), dtype=torch.float32, device=self.device)
         self.state = torch.tensor(self.state, dtype=torch.float32, device=self.device)
 
     def reset_env(self):
@@ -202,11 +202,11 @@ class Env:
         tentative_update : bool, optional
             Whether the update is tentative or not, by default False.
         """
-        self.trade_state[0, :, -1].copy_(torch.tensor(np.round(update_values, 3)))
-
         if not tentative_update:
             self.trade_state[0, :, :-1].copy_(self.trade_state[0, :, 1:])
             self.trade_state[0, :, -1].zero_()
+
+        self.trade_state[0, :, -1].copy_(torch.tensor(np.round(update_values, 3)))
 
     def step(self, get_action, start_index: int, end_index: int, train=False):
         """
@@ -230,16 +230,13 @@ class Env:
         is_stop = True
         now_state = [0, 0]
 
-        hit_point = 20
+        hit_point = 30
 
         for i in range(len(state) - 1):
             done, reward = 1, 0
             days += 1
 
             if is_stop:
-                self.update_trade_state([days / self.sim_limit, hit_point / 100],
-                                        tentative_update=True)
-
                 pip, old_i, trade_length, stop_loss, position_size = self.start_trade(i, atr)
                 skip = 5
 
@@ -264,9 +261,8 @@ class Env:
             if action == 0:
                 skip -= 1
                 is_stop = skip <= 0
-
                 if is_stop:
-                    hit_point -= 0.5
+                    add_hit_point = -0.1
             else:
                 trade_length += 1
                 pip = (open[i + 1] - open[old_i]) * action - self.spread
@@ -280,9 +276,6 @@ class Env:
 
                 event = None
                 if lower_pip <= -stop_loss:
-                    # if pip > 0:
-                    #     print(f"\nerror, s: {self.symbol}, pip: {pip}, lower_pip: {lower_pip}, higher_pip: {higher_pip}\n"
-                    #           f"i: {start_index + i}, old_i: {start_index + old_i}, open_i: {open[i]}, open_old_i: {open[old_i]}\n")
                     pip = -stop_loss
                     is_stop = True
                     event = "stop loss"
@@ -297,8 +290,7 @@ class Env:
                     is_stop = False
 
                 if is_stop:
-                    add_hit_point = pip / stop_loss
-                    hit_point += add_hit_point
+                    add_hit_point = np.round(pip / stop_loss, 2)
 
                 if event is not None:
                     if action == 1:
@@ -306,17 +298,21 @@ class Env:
                     elif action == -1:
                         self.trade_event["short"][i] = event
 
-            hit_point = np.clip(np.round(hit_point, 3), 0, 100)
-
             if is_stop:
+                now_dyas = (days + 1) / self.sim_limit
+                hit_point = np.round(hit_point + add_hit_point, 2)
+                now_hp = hit_point / 100
+
+                if self.trade_state[0, 2, -1] == 0 and action == 0:
+                    add_hit_point += self.trade_state[0, -1, -1].item()
+                    self.update_trade_state([now_dyas, now_hp, 0, add_hit_point], tentative_update=True)
+                else:
+                    self.update_trade_state([now_dyas, now_hp, action, add_hit_point])
+
                 self.stop_trade(pip, action, position_size)
-                # profit_factor, expected_ratio = self.get_metrics()
-
-            if days % 100 == 0:
-                self.update_trade_state([days / self.sim_limit, hit_point / 100])
 
             if is_stop:
-                reward = 1 + (hit_point - 20) / 8
+                reward = np.round(0.5 + (hit_point - 30) / 7, 3)
                 if days >= self.sim_limit or hit_point == 0:
                     done = 0
                     if not train:

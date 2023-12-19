@@ -116,7 +116,7 @@ def add_technical_indicators(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-def scale_and_split_data(data: pd.DataFrame, window_size: int = 50) -> np.ndarray:
+def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> np.ndarray:
     """
     Scale and split the data into chunks of a specified window size.
 
