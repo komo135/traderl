@@ -354,9 +354,8 @@ class DQN:
                         self.update()
 
                         if (self.i + 1) % 10000 == 0:
-                            test_end = self.test_step[-1]
-                            if (self.test_step[-1] - self.test_step[0]) > 10000:
-                                test_start = test_end - 10000
+                            test_start = self.test_step[0]
+                            test_end = np.minimum(self.test_step[-1], test_start + 10000)
 
                             self.evolution.evolute(self.get_action, test_start, test_end)
                             self.evolution_history.append(np.sum(self.evolution.total_pips))

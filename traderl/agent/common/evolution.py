@@ -74,7 +74,7 @@ class Evolution:
         low = data['low'][symbol][start:end]
         close = data['close'][symbol][start:end]
         ohlc = np.stack([open, high, low, close], axis=-1)
-        ohlc_df = pd.DataFrame(ohlc, columns=['open', 'high', 'low', 'close'])[-500:]
+        ohlc_df = pd.DataFrame(ohlc, columns=['open', 'high', 'low', 'close'])[:500]
 
         ohlc_df.index = pd.date_range(start='2000-01-01', periods=len(ohlc_df.index))
 
@@ -86,25 +86,25 @@ class Evolution:
                                         ['g', 'r', 'b', 'y', 'c']):
 
             if event == "long" or event == "short":
-                indices = pd.Index([i for i, e in enumerate(trade_event["open"][-500:]) if e == event])
+                indices = pd.Index([i for i, e in enumerate(trade_event["open"][:500]) if e == event])
                 ax.plot(indices, ohlc_df['open'][indices], marker, markersize=10, color=color, label=event)
             elif event == "stop trade":
-                indices = pd.Index([i for i, e in enumerate(long_event[-500:]) if e == event])
+                indices = pd.Index([i for i, e in enumerate(long_event[:500]) if e == event])
                 ax.plot(indices, ohlc_df['close'][indices], marker, markersize=10, color=color, label=event)
 
-                indices = pd.Index([i for i, e in enumerate(short_event[-500:]) if e == event])
+                indices = pd.Index([i for i, e in enumerate(short_event[:500]) if e == event])
                 ax.plot(indices, ohlc_df['close'][indices], marker, markersize=10, color=color)
             elif event == "stop loss":
-                indices = pd.Index([i for i, e in enumerate(long_event[-500:]) if e == event])
+                indices = pd.Index([i for i, e in enumerate(long_event[:500]) if e == event])
                 ax.plot(indices, ohlc_df['low'][indices], marker, markersize=10, color=color, label=event)
 
-                indices = pd.Index([i for i, e in enumerate(short_event[-500:]) if e == event])
+                indices = pd.Index([i for i, e in enumerate(short_event[:500]) if e == event])
                 ax.plot(indices, ohlc_df['high'][indices], marker, markersize=10, color=color,)
             elif event == "take profit":
-                indices = pd.Index([i for i, e in enumerate(long_event[-500:]) if e == event])
+                indices = pd.Index([i for i, e in enumerate(long_event[:500]) if e == event])
                 ax.plot(indices, ohlc_df['high'][indices], marker, markersize=10, color=color, label=event)
 
-                indices = pd.Index([i for i, e in enumerate(short_event[-500:]) if e == event])
+                indices = pd.Index([i for i, e in enumerate(short_event[:500]) if e == event])
                 ax.plot(indices, ohlc_df['low'][indices], marker, markersize=10, color=color,)
 
         plt.legend()
