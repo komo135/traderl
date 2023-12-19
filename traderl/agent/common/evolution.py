@@ -51,7 +51,7 @@ class Evolution:
         self.trade_events = []
         self.total_pips = []
 
-    def _plot(self, symbol: int, start: str, end: str):
+    def _plot(self, symbol: int, start: int, end: int):
         """
         Plot the trade history.
 

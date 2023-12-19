@@ -116,7 +116,7 @@ def add_technical_indicators(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> np.ndarray:
+def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> tuple[pd.DataFrame, np.array]:
     """
     Scale and split the data into chunks of a specified window size.
 
@@ -194,7 +194,7 @@ def main(remote: bool, folder_path: str = None, symbols: list = None, financial_
     highs = np.stack([data['high'].values for data in market_datas], axis=0)
     lows = np.stack([data['low'].values for data in market_datas], axis=0)
     closes = np.stack([data['close'].values for data in market_datas], axis=0)
-    atrs = np.stack([data['b_wband'].values for data in market_datas], axis=0)
+    atrs = np.stack([data['atr'].values * 2 for data in market_datas], axis=0)
 
     # Save state data and OHLC data in .npz format
     logging.info("Saving data.")

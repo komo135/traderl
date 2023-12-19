@@ -52,7 +52,7 @@ class Env:
         self.max_asset, self.asset_drawdown = self.asset, 1.0
         self.trade_event = {"long": [], "short": []}
 
-        self.trade_state = torch.empty((1, 4, 50), dtype=torch.float32, device=self.device)
+        self.trade_state = torch.empty((1, 4, 30), dtype=torch.float32, device=self.device)
         self.state = torch.tensor(self.state, dtype=torch.float32, device=self.device)
 
     def reset_env(self):
@@ -300,7 +300,7 @@ class Env:
 
             if is_stop:
                 now_dyas = (days + 1) / self.sim_limit
-                hit_point = np.round(hit_point + add_hit_point, 2)
+                hit_point = np.clip(np.round(hit_point + add_hit_point, 2), 0, 30)
                 now_hp = hit_point / 100
 
                 if self.trade_state[0, 2, -1] == 0 and action == 0:
@@ -312,7 +312,7 @@ class Env:
                 self.stop_trade(pip, action, position_size)
 
             if is_stop:
-                reward = np.round(0.5 + (hit_point - 30) / 7, 3)
+                reward = np.round((hit_point - 20) / 10, 3)
                 if days >= self.sim_limit or hit_point == 0:
                     done = 0
                     if not train:
