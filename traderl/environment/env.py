@@ -38,7 +38,7 @@ class Env:
         self.atr = data['atr']
 
         self.min_stop_losses = np.array([np.median(atr) for atr in self.atr])
-        self.max_stop_losses = np.array([np.quantile(atr, 0.975) for atr in self.atr])
+        self.max_stop_losses = np.array([np.quantile(atr, 0.9) for atr in self.atr])
 
         self.symbols = self.open.shape[0]
         self.symbol = -1
