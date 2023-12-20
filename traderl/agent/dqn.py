@@ -313,7 +313,7 @@ class DQN:
                 print(f"total pip: {self.env.total_pip}, asset: {self.env.asset}")
                 states, trading_states, actions, rewards, dons = self._initialize_deques()
 
-                if (num_update_data + 1) % 15 == 0:
+                if (num_update_data + 1) % 5 == 0:
                     start, end = self._get_start_end()
                 else:
                     self.env.symbol -= 1
