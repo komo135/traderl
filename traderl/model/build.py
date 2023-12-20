@@ -27,6 +27,7 @@ class QModel(torch.nn.Module):
         fc = torch.nn.Sequential(
             torch.nn.Linear(input_channels, 512, device=self.device),
             torch.nn.ELU(),
+            torch.nn.Dropout(0.4),
             torch.nn.Linear(512, self.action_space, device=self.device),
         )
         return fc
@@ -57,6 +58,7 @@ class ActorModel(torch.nn.Module):
         fc = torch.nn.Sequential(
             torch.nn.Linear(input_channels, 512, device=self.device),
             torch.nn.ELU(),
+            torch.nn.Dropout(0.5),
             torch.nn.Linear(512, self.action_space, device=self.device),
             torch.nn.Tanh()
         )
