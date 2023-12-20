@@ -266,6 +266,7 @@ class Env:
                 is_stop = skip <= 0
                 if is_stop:
                     zeros_days += 1
+                    add_hit_point = -0.5 if zeros_days >= 4 else 0
             else:
                 trade_length += 1
                 pip = (open[i + 1] - open[old_i]) * action - self.spread
@@ -307,8 +308,6 @@ class Env:
                 now_hp = hit_point / 100
 
                 if self.trade_state[0, 2, -1] == 0 and action == 0:
-                    if zeros_days >= 4:
-                        add_hit_point = -0.5
                     add_hit_point += self.trade_state[0, -1, -1].item()
                     self.update_trade_state([now_dyas, now_hp, 0, add_hit_point], tentative_update=True)
                 else:
