@@ -305,7 +305,7 @@ class Env:
             if is_stop:
                 now_dyas = (days + 1) / self.sim_limit
                 hit_point = np.clip(np.round(hit_point + add_hit_point, 2), 0, 10)
-                now_hp = hit_point / 100
+                now_hp = hit_point / 10
 
                 if self.trade_state[0, 2, -1] == 0 and action == 0:
                     add_hit_point += self.trade_state[0, -1, -1].item()
