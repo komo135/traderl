@@ -229,7 +229,7 @@ class Env:
         is_stop = True
         now_state = [0, 0]
 
-        hit_point = 0
+        hit_point = 10
         zeros_days = 0
 
         for i in range(len(state) - 1):
