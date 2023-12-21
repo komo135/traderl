@@ -54,7 +54,7 @@ class DQN:
     def __init__(self,
                  network_name: str,
                  action_space: int = 3,
-                 learning_rate: float = 1e-4,
+                 learning_rate: float = 1e-5,
                  gamma: float = 0.99,
                  epsilon: float = 0.9,
                  replay_buffer_size: float = 1e6,

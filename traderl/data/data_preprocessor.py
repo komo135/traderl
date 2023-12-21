@@ -171,8 +171,7 @@ def main(remote: bool, folder_path: str = None, symbols: list = None, financial_
 
     # If not remote, get all csv files in the folder path
     if not remote:
-        # symbols = glob.glob(folder_path + '/*.csv')
-        symbols = glob.glob(folder_path + '/EURUSD.csv')
+        symbols = glob.glob(folder_path + '/*.csv')
         logging.debug(f"Symbols: {symbols}")
 
     # Load and preprocess data for each symbol
