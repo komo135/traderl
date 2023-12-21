@@ -283,7 +283,7 @@ class Env:
                     pip = -stop_loss
                     is_stop = True
                     event = "stop loss"
-                    add_hit_point = -0.4
+                    add_hit_point = -0.2
                 elif higher_pip >= take_profit:
                     pip = take_profit
                     is_stop = True
@@ -292,7 +292,7 @@ class Env:
                 elif trade_length >= 50:
                     is_stop = True
                     event = "stop trade"
-                    add_hit_point = -0.4
+                    add_hit_point = -0.2
                 else:
                     is_stop = False
 
