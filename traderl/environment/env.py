@@ -229,7 +229,7 @@ class Env:
         is_stop = True
         now_state = [0, 0]
 
-        hit_point = 10
+        hit_point = 30
         zeros_days = 0
 
         for i in range(len(state) - 1):
@@ -283,16 +283,19 @@ class Env:
                     pip = -stop_loss
                     is_stop = True
                     event = "stop loss"
-                    add_hit_point = -0.2
+
+                    add_hit_point = -0.5
                 elif higher_pip >= take_profit:
                     pip = take_profit
                     is_stop = True
                     event = "take profit"
-                    add_hit_point = np.round(pip / stop_loss, 3)
+
+                    add_hit_point = np.round(pip / stop_loss, 2)
                 elif trade_length >= 50:
                     is_stop = True
                     event = "stop trade"
-                    add_hit_point = -0.2
+
+                    add_hit_point = -0.5
                 else:
                     is_stop = False
 
@@ -304,8 +307,8 @@ class Env:
 
             if is_stop:
                 now_dyas = (days + 1) / self.sim_limit
-                hit_point = np.clip(np.round(hit_point + add_hit_point, 2), 0, 10)
-                now_hp = hit_point / 10
+                hit_point = np.clip(np.round(hit_point + add_hit_point, 2), 0, 30)
+                now_hp = hit_point / 30
 
                 if self.trade_state[0, 2, -1] == 0 and action == 0:
                     add_hit_point += self.trade_state[0, -1, -1].item()
@@ -316,7 +319,7 @@ class Env:
                 self.stop_trade(pip, action, position_size)
 
             if is_stop:
-                reward = np.round(hit_point / 10, 3)
+                reward = np.round((hit_point - 20) / 10, 3)
                 if days >= self.sim_limit or hit_point == 0:
                     done = 0
                     if not train:
