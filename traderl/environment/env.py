@@ -260,13 +260,11 @@ class Env:
                     self.trade_event["open"][i] = "short"
 
             self.actions.append(action)
+            add_hit_point = -0.02
 
             if action == 0:
                 skip -= 1
                 is_stop = skip <= 0
-                if is_stop:
-                    zeros_days += 1
-                    add_hit_point = -1 if zeros_days >= 5 else 0
             else:
                 trade_length += 1
                 pip = (open[i + 1] - open[old_i]) * action - self.spread
@@ -283,19 +281,15 @@ class Env:
                     pip = -stop_loss
                     is_stop = True
                     event = "stop loss"
-
-                    add_hit_point = -1
                 elif higher_pip >= take_profit:
                     pip = take_profit
                     is_stop = True
                     event = "take profit"
 
-                    add_hit_point = np.round(pip / stop_loss, 2)
+                    add_hit_point = np.round(pip / stop_loss, 3)
                 elif trade_length >= 50:
                     is_stop = True
                     event = "stop trade"
-
-                    add_hit_point = -1
                 else:
                     is_stop = False
 
@@ -305,16 +299,16 @@ class Env:
                     elif action == -1:
                         self.trade_event["short"][i] = event
 
+            hit_point = np.clip(np.round(hit_point + add_hit_point, 2), 0, 30)
             if is_stop:
                 now_dyas = (days + 1) / self.sim_limit
-                hit_point = np.clip(np.round(hit_point + add_hit_point, 2), 0, 30)
                 now_hp = hit_point / 30
 
                 if self.trade_state[0, 2, -1] == 0 and action == 0:
                     add_hit_point += self.trade_state[0, -1, -1].item()
-                    self.update_trade_state([now_dyas, now_hp, 0, add_hit_point / 10], tentative_update=True)
+                    self.update_trade_state([now_dyas, now_hp, 0, add_hit_point], tentative_update=True)
                 else:
-                    self.update_trade_state([now_dyas, now_hp, action, add_hit_point / 10])
+                    self.update_trade_state([now_dyas, now_hp, action, add_hit_point])
 
                 self.stop_trade(pip, action, position_size)
 
