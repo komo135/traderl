@@ -38,7 +38,7 @@ class Env:
         self.atr = data['atr']
 
         self.min_stop_losses = np.array([np.median(atr) for atr in self.atr])
-        self.max_stop_losses = np.array([np.quantile(atr, 0.9) for atr in self.atr])
+        self.max_stop_losses = np.array([np.quantile(atr, 0.99) for atr in self.atr])
 
         self.symbols = self.open.shape[0]
         self.symbol = -1
@@ -229,7 +229,7 @@ class Env:
         is_stop = True
         now_state = [0, 0]
 
-        hit_point = 30
+        hit_point = 0
         zeros_days = 0
 
         for i in range(len(state) - 1):
@@ -283,18 +283,18 @@ class Env:
                     pip = -stop_loss
                     is_stop = True
                     event = "stop loss"
+                    add_hit_point = -0.4
                 elif higher_pip >= take_profit:
                     pip = take_profit
                     is_stop = True
                     event = "take profit"
+                    add_hit_point = np.round(pip / stop_loss, 3)
                 elif trade_length >= 50:
                     is_stop = True
                     event = "stop trade"
+                    add_hit_point = -0.4
                 else:
                     is_stop = False
-
-                if is_stop:
-                    add_hit_point = np.round(pip / stop_loss, 2)
 
                 if event is not None:
                     if action == 1:
@@ -304,7 +304,7 @@ class Env:
 
             if is_stop:
                 now_dyas = (days + 1) / self.sim_limit
-                hit_point = np.clip(np.round(hit_point + add_hit_point, 2), 0, 30)
+                hit_point = np.clip(np.round(hit_point + add_hit_point, 2), 0, 10)
                 now_hp = hit_point / 100
 
                 if self.trade_state[0, 2, -1] == 0 and action == 0:
@@ -316,7 +316,7 @@ class Env:
                 self.stop_trade(pip, action, position_size)
 
             if is_stop:
-                reward = np.round((hit_point - 20) / 10, 3)
+                reward = np.round(hit_point / 10, 3)
                 if days >= self.sim_limit or hit_point == 0:
                     done = 0
                     if not train:
