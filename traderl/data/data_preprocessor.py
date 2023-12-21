@@ -130,7 +130,7 @@ def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> tuple[pd.
     logging.debug(f"Scaling and splitting data. Window size: {window_size}")
 
     # Select specific columns for the scaled data
-    data_array = np.array(data[["rsi", "macd", "b_pband", "b_wband"]])
+    data_array = np.array(data[["rsi", "macd", "b_pband", "atr"]])
 
     # Scale the data
     scaler = RobustScaler()
