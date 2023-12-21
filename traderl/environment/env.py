@@ -312,9 +312,9 @@ class Env:
 
                 if self.trade_state[0, 2, -1] == 0 and action == 0:
                     add_hit_point += self.trade_state[0, -1, -1].item()
-                    self.update_trade_state([now_dyas, now_hp, 0, add_hit_point], tentative_update=True)
+                    self.update_trade_state([now_dyas, now_hp, 0, add_hit_point / 10], tentative_update=True)
                 else:
-                    self.update_trade_state([now_dyas, now_hp, action, add_hit_point])
+                    self.update_trade_state([now_dyas, now_hp, action, add_hit_point / 10])
 
                 self.stop_trade(pip, action, position_size)
 
