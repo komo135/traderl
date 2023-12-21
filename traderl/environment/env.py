@@ -266,7 +266,7 @@ class Env:
                 is_stop = skip <= 0
                 if is_stop:
                     zeros_days += 1
-                    add_hit_point = -0.5 if zeros_days >= 4 else 0
+                    add_hit_point = -1 if zeros_days >= 5 else 0
             else:
                 trade_length += 1
                 pip = (open[i + 1] - open[old_i]) * action - self.spread
@@ -284,7 +284,7 @@ class Env:
                     is_stop = True
                     event = "stop loss"
 
-                    add_hit_point = -0.5
+                    add_hit_point = -1
                 elif higher_pip >= take_profit:
                     pip = take_profit
                     is_stop = True
@@ -295,7 +295,7 @@ class Env:
                     is_stop = True
                     event = "stop trade"
 
-                    add_hit_point = -0.5
+                    add_hit_point = -1
                 else:
                     is_stop = False
 
