@@ -259,7 +259,7 @@ class Env:
                 add_hit_point = 0
 
             self.actions.append(action)
-            add_hit_point -= 0.02
+            add_hit_point -= 0.05
 
             if action == 0:
                 skip -= 1
