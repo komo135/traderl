@@ -251,16 +251,15 @@ class Env:
                     action = np.sign(policy)
                     take_profit = np.clip(stop_loss * np.abs(policy) * 2, 1, None)
 
-                if action != 0:
-                    zeros_days = 0
-
                 if action == 1:
                     self.trade_event["open"][i] = "long"
                 elif action == -1:
                     self.trade_event["open"][i] = "short"
 
+                add_hit_point = 0
+
             self.actions.append(action)
-            add_hit_point = -0.02
+            add_hit_point -= 0.02
 
             if action == 0:
                 skip -= 1
@@ -299,8 +298,8 @@ class Env:
                     elif action == -1:
                         self.trade_event["short"][i] = event
 
-            hit_point = np.clip(np.round(hit_point + add_hit_point, 2), 0, 30)
             if is_stop:
+                hit_point = np.clip(np.round(hit_point + add_hit_point, 2), 0, 30)
                 now_dyas = (days + 1) / self.sim_limit
                 now_hp = hit_point / 30
 
