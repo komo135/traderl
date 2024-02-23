@@ -84,7 +84,6 @@ class Evolution:
         for event, marker, color in zip(['long', 'short', 'stop loss', 'take profit', 'stop trade'],
                                         ['^', 'v', 'x', 'o', 's'],
                                         ['g', 'r', 'b', 'y', 'c']):
-
             if event == "long" or event == "short":
                 indices = pd.Index([i for i, e in enumerate(trade_event["open"][:500]) if e == event])
                 ax.plot(indices, ohlc_df['open'][indices], marker, markersize=10, color=color, label=event)

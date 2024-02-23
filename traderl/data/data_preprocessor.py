@@ -85,7 +85,7 @@ def add_technical_indicators(data: pd.DataFrame) -> pd.DataFrame:
     data['rsi'] = ta.momentum.rsi(data['close'])
 
     # Moving Average Convergence Divergence
-    data['macd'] = ta.trend.MACD(data.close).macd_diff()
+    data['macd'] = ta.trend.MACD(data['close']).macd_diff()
 
     # Short-term signal: Crossover of 5-day and 10-day EMA (Exponential Moving Average)
     data['ema_5'] = ta.trend.ema_indicator(data['close'], window=5)

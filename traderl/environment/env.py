@@ -245,7 +245,7 @@ class Env:
                 if self.action_type == 'discrete':
                     policy = get_action(now_state, train=train)
                     action = 1 if policy == 0 else -1 if policy == 1 else 0
-                    take_profit = stop_loss * 1
+                    take_profit = stop_loss * 2
                 else:
                     policy = get_action(now_state, train=train)
                     action = np.sign(policy)
@@ -268,15 +268,18 @@ class Env:
                 trade_length += 1
                 pip = (open[i + 1] - open[old_i]) * action - self.spread
 
-                if action == 1:
-                    higher_pip = high[i] - open[old_i] - self.spread
-                    lower_pip = low[i] - open[old_i] - self.spread
-                else:
-                    higher_pip = open[old_i] - low[i] - self.spread
-                    lower_pip = open[old_i] - high[i] - self.spread
+                higher_pip = (high[i] - open[old_i] if action == 1 else open[old_i] - high[i]) - self.spread
+                lower_pip = (low[i] - open[old_i] if action == 1 else open[old_i] - low[i]) - self.spread
+
+                now_higher_pip = (high[i] - open[i] if action == 1 else open[i] - high[i]) - self.spread
+                now_lower_pip = (low[i] - open[i] if action == 1 else open[i] - low[i]) - self.spread
 
                 event = None
                 if lower_pip <= -stop_loss:
+                    if pip >= 0:
+                        print(f"pip: {pip}, lower_pip: {lower_pip} now_lower_pip:"
+                              f"{now_lower_pip}, stop_loss: {stop_loss}, position_size: {position_size}, action: {action}")
+
                     pip = -stop_loss
                     is_stop = True
                     event = "stop loss"
