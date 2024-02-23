@@ -278,7 +278,8 @@ class Env:
                 if lower_pip <= -stop_loss:
                     if pip >= 0:
                         print(f"pip: {pip}, lower_pip: {lower_pip} now_lower_pip:"
-                              f"{now_lower_pip}, stop_loss: {stop_loss}, position_size: {position_size}, action: {action}")
+                              f"{now_lower_pip}, stop_loss: {stop_loss}, position_size: {position_size}, action: {action}"
+                              f"symbol: {self.symbol}, old_i: {old_i}, i: {i}, start_index: {start_index}, end_index: {end_index}")
 
                     pip = -stop_loss
                     is_stop = True
