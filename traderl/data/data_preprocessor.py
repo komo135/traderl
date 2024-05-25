@@ -1,12 +1,18 @@
-import pandas_datareader as pdr
-import pandas as pd
-import glob
-import numpy as np
-import ta
-from sklearn.preprocessing import RobustScaler
+"""
+This module is responsible for preprocessing the data and saving it in a .npz format.
+"""
 import argparse
 import logging
 import time
+import glob
+
+import pandas_datareader as pdr
+import pandas as pd
+import numpy as np
+import ta
+from sklearn.preprocessing import RobustScaler
+
+from . import FibonacciRetracementGenerator
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -24,7 +30,7 @@ def load_data(remote: bool, symbol: str = None) -> pd.DataFrame:
     pd.DataFrame: The loaded data.
     """
     start_time = time.time()
-    logging.debug(f"Loading data. Remote: {remote}, Symbol: {symbol}")
+    logging.debug("Loading data. Remote: %s, Symbol: %s", remote, symbol)
 
     if remote:
         if symbol is None:
@@ -36,7 +42,7 @@ def load_data(remote: bool, symbol: str = None) -> pd.DataFrame:
             raise ValueError("File path is required when loading data from a local file.")
         data = pd.read_csv(file_path)
 
-    logging.debug(f"Data loaded in {time.time() - start_time} seconds.")
+    logging.debug("Data loaded in %s seconds.", time.time() - start_time)
     return data
 
 
@@ -52,7 +58,7 @@ def preprocess_data(data: pd.DataFrame, symbol: str, financial_type: str) -> pd.
     Returns:
     pd.DataFrame: The preprocessed data.
     """
-    logging.debug(f"Preprocessing data. Symbol: {symbol}, Financial type: {financial_type}")
+    logging.debug("Preprocessing data. Symbol: %s, Financial type: %s", symbol, financial_type)
 
     # Convert column names to lowercase
     data.columns = data.columns.str.lower()
@@ -65,7 +71,7 @@ def preprocess_data(data: pd.DataFrame, symbol: str, financial_type: str) -> pd.
     # Add technical indicators
     data = add_technical_indicators(data)
 
-    logging.debug(f"Data shape after preprocessing: {data.shape}")
+    logging.debug("Data shape after preprocessing: %s", data.shape)
     return data
 
 
@@ -81,24 +87,28 @@ def add_technical_indicators(data: pd.DataFrame) -> pd.DataFrame:
     """
     logging.debug("Adding technical indicators.")
 
+    fib = FibonacciRetracementGenerator(data)
+    fib.calculate()
+
+    data = fib.data
+
+    # Short-term signal: Crossover of 10-day and 20-day EMA (Exponential Moving Average)
+    data['ema_10'] = ta.trend.ema_indicator(data['close'], window=10)
+    data['ema_20'] = ta.trend.ema_indicator(data['close'], window=20)
+    data['ema_10_20_crossover'] = np.where(data['ema_10'] > data['ema_20'], 1, -1)
+
     # Relative Strength Index
     data['rsi'] = ta.momentum.rsi(data['close'])
 
     # Moving Average Convergence Divergence
     data['macd'] = ta.trend.MACD(data['close']).macd_diff()
 
-    # Short-term signal: Crossover of 5-day and 10-day EMA (Exponential Moving Average)
-    data['ema_5'] = ta.trend.ema_indicator(data['close'], window=5)
-    data['ema_10'] = ta.trend.ema_indicator(data['close'], window=10)
-    data['ema_5_10_crossover'] = np.where(data['ema_5'] > data['ema_10'], 1, -1)
-
-    # Long-term signal: 200-day EMA
-    data['ema_200'] = ta.trend.ema_indicator(data['close'], window=200)
-
     # Bollinger Bands
-    BollingerBands = ta.volatility.BollingerBands(data['close'])
-    data['b_pband'] = BollingerBands.bollinger_pband()
-    data['b_wband'] = BollingerBands._hband - BollingerBands._lband
+    bollinger_band = ta.volatility.BollingerBands(data['close'])
+    data['b_pband'] = bollinger_band.bollinger_pband()
+    data['b_wband'] = bollinger_band.bollinger_wband()
+    data['b_higher_band'] = bollinger_band._hband
+    data['b_lower_band'] = bollinger_band._lband
 
     # Average True Range
     data['atr'] = ta.volatility.average_true_range(data['high'], data['low'], data['close'])
@@ -112,7 +122,7 @@ def add_technical_indicators(data: pd.DataFrame) -> pd.DataFrame:
     # Drop rows with NaN values
     data = data.dropna()
 
-    logging.debug(f"Data shape after adding technical indicators: {data.shape}")
+    logging.debug("Data shape after adding technical indicators: %s", data.shape)
     return data
 
 
@@ -127,7 +137,7 @@ def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> tuple[pd.
     Returns:
     np.array: The scaled and split data.
     """
-    logging.debug(f"Scaling and splitting data. Window size: {window_size}")
+    logging.debug("Scaling and splitting data. Window size: %s", window_size)
 
     # Select specific columns for the scaled data
     data_array = np.array(data[["rsi", "macd", "b_pband", "atr"]])
@@ -136,16 +146,20 @@ def scale_and_split_data(data: pd.DataFrame, window_size: int = 30) -> tuple[pd.
     scaler = RobustScaler()
     data_scaled = scaler.fit_transform(data_array)
 
+    # Add fib_retracement_level and fib_retracement_current_level without scaling
+    fib_levels = data[["fib_retracement_level", "fib_retracement_current_level", "confirmed_trend", "ema_10_20_crossover"]].values
+    data_combined = np.hstack((data_scaled, fib_levels))
+
     # Split the data into chunks of the specified window size
     data_split = []
-    for i in range(window_size, len(data_scaled)):
-        data_split.append(data_scaled[i - window_size:i])
+    for i in range(window_size, len(data_combined)):
+        data_split.append(data_combined[i - window_size:i])
     data = data[window_size:]
 
     data_split = np.array(data_split)
     data_split = np.transpose(data_split, (0, 2, 1))
 
-    logging.debug(f"Data shape after scaling and splitting: {data_split.shape}")
+    logging.debug("Data shape after scaling and splitting: %s", data_split.shape)
 
     return data, data_split
 
@@ -164,7 +178,7 @@ def main(remote: bool, folder_path: str = None, symbols: list = None, financial_
     None
     """
     logging.debug(
-        f"Running main function. Remote: {remote}, Folder path: {folder_path}, Symbols: {symbols}, Financial type: {financial_type}")
+        "Running main function. Remote: %s, Folder path: %s, Symbols: %s, Financial type: %s", remote, folder_path, symbols, financial_type)
 
     market_datas = []
     state_datas = []
@@ -172,7 +186,7 @@ def main(remote: bool, folder_path: str = None, symbols: list = None, financial_
     # If not remote, get all csv files in the folder path
     if not remote:
         symbols = glob.glob(folder_path + '/*.csv')
-        logging.debug(f"Symbols: {symbols}")
+        logging.debug("Symbols: %s", symbols)
 
     # Load and preprocess data for each symbol
     for symbol in symbols:
@@ -182,12 +196,12 @@ def main(remote: bool, folder_path: str = None, symbols: list = None, financial_
 
         market_datas.append(data)
         state_datas.append(data_split)
-    logging.debug(f"Number of items in state_datas: {len(state_datas)}")
-    logging.debug(f"Shapes of items in state_datas: {[item.shape for item in state_datas]}")
+    logging.debug("Number of items in state_datas: %s", len(state_datas))
+    logging.debug("Shapes of items in state_datas: %s", [item.shape for item in state_datas])
 
     # Stack state data
     state_datas = np.array(state_datas)
-    logging.debug(f"State data shape: {state_datas.shape}")
+    logging.debug("State data shape: %s", state_datas.shape)
 
     # Split market data into OHLC and stack
     opens = np.stack([data['open'].values for data in market_datas], axis=0)
@@ -195,10 +209,13 @@ def main(remote: bool, folder_path: str = None, symbols: list = None, financial_
     lows = np.stack([data['low'].values for data in market_datas], axis=0)
     closes = np.stack([data['close'].values for data in market_datas], axis=0)
     atrs = np.stack([data['atr'].values * 2 for data in market_datas], axis=0)
+    bollinger_higher_band = np.stack([data['b_higher_band'].values for data in market_datas], axis=0)
+    bollinger_lower_band = np.stack([data['b_lower_band'].values for data in market_datas], axis=0)
 
     # Save state data and OHLC data in .npz format
     logging.info("Saving data.")
-    np.savez('data.npz', state=state_datas, open=opens, high=highs, low=lows, close=closes, atr=atrs)
+    np.savez('data.npz', state=state_datas, open=opens, high=highs, low=lows, close=closes,
+             atr=atrs, bollinger_higher_band=bollinger_higher_band, bollinger_lower_band=bollinger_lower_band)
     logging.info("Data saved.")
 
     logging.debug("Main function completed.")
