@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from traitlets import default
 
 
 class Env:
@@ -38,8 +37,8 @@ class Env:
         self.low = data['low']
         self.atr = data['atr']
 
-        self.min_stop_losses = np.array([np.mean(atr) for atr in self.atr])
-        self.max_stop_losses = np.array([np.quantile(atr, 0.99) * 2 for atr in self.atr])
+        self.min_stop_losses = np.array([np.median(atr) for atr in self.atr])
+        self.max_stop_losses = np.array([np.quantile(atr, 0.99) for atr in self.atr])
 
         self.symbols = self.open.shape[0]
         self.symbol = -1
@@ -52,7 +51,7 @@ class Env:
         self.max_asset, self.asset_drawdown = self.asset, 1.0
         self.trade_event = {"long": [], "short": []}
 
-        self.trade_state = torch.empty((1, 5, 30), dtype=torch.float32, device=self.device)
+        self.trade_state = torch.empty((1, 4, 30), dtype=torch.float32, device=self.device)
         self.state = torch.tensor(self.state, dtype=torch.float32, device=self.device)
 
     def reset_env(self):
@@ -81,7 +80,6 @@ class Env:
             A tuple containing the profit factor, expected ratio, and number of days.
         """
         self.asset = self.initial_asset
-        self.total_pip = 0
         self.pips, self.win_pips, self.lose_pips = [[] for _ in range(3)]
         self.profits = []
         self.max_asset, self.asset_drawdown = self.asset, 1.0
@@ -112,7 +110,7 @@ class Env:
         pip = 0
         old_i = i
         trade_length = 0
-        stop_loss = np.clip(atr[i] * 2, self.min_stop_losses[self.symbol], self.max_stop_losses[self.symbol])
+        stop_loss = np.clip(atr[i] * 1, self.min_stop_losses[self.symbol], self.max_stop_losses[self.symbol])
         position_size = int(self.asset * self.risk / stop_loss)
         position_size = np.minimum(np.maximum(position_size, 0), 10000000)
 
@@ -181,7 +179,7 @@ class Env:
         tuple
             A tuple containing the state, open, high, low, and atr arrays.
         """
-        state = self.state[self.symbol, start_index:end_index]
+        state = self.state[self.symbol, start_index:end_index].clone()
         open = self.open[self.symbol, start_index:end_index]
         high = self.high[self.symbol, start_index:end_index]
         low = self.low[self.symbol, start_index:end_index]
@@ -203,11 +201,11 @@ class Env:
         tentative_update : bool, optional
             Whether the update is tentative or not, by default False.
         """
-        self.trade_state[0, :, -1].copy_(torch.tensor(np.round(update_values, 3)))
-
         if not tentative_update:
             self.trade_state[0, :, :-1].copy_(self.trade_state[0, :, 1:])
             self.trade_state[0, :, -1].zero_()
+
+        self.trade_state[0, :, -1].copy_(torch.tensor(np.round(update_values, 3)))
 
     def step(self, get_action, start_index: int, end_index: int, train=False):
         """
@@ -231,15 +229,14 @@ class Env:
         is_stop = True
         now_state = [0, 0]
 
+        hit_point = 30
+        zeros_days = 0
+
         for i in range(len(state) - 1):
             done, reward = 1, 0
             days += 1
 
             if is_stop:
-                self.update_trade_state([days / self.sim_limit, profit_factor, expected_ratio,
-                                         self.asset_drawdown, self.asset / self.initial_asset * 0.1],
-                                        tentative_update=True)
-
                 pip, old_i, trade_length, stop_loss, position_size = self.start_trade(i, atr)
                 skip = 5
 
@@ -259,24 +256,31 @@ class Env:
                 elif action == -1:
                     self.trade_event["open"][i] = "short"
 
+                add_hit_point = 0
+
             self.actions.append(action)
+            add_hit_point -= 0.05
 
             if action == 0:
                 skip -= 1
                 is_stop = skip <= 0
             else:
                 trade_length += 1
-                pip += (open[i + 1] - open[i]) * action - (self.spread if trade_length == 1 else 0)
+                pip = (open[i + 1] - open[old_i]) * action - self.spread
 
-                if action == 1:
-                    higher_pip = high[i] - open[old_i] - self.spread
-                    lower_pip = low[i] - open[old_i] - self.spread
-                else:
-                    higher_pip = open[old_i] - low[i] - self.spread
-                    lower_pip = open[old_i] - high[i] - self.spread
+                higher_pip = (high[i] - open[old_i] if action == 1 else open[old_i] - low[i]) - self.spread
+                lower_pip = (low[i] - open[old_i] if action == 1 else open[old_i] - high[i]) - self.spread
+
+                now_higher_pip = (high[i] - open[i] if action == 1 else open[i] - low[i]) - self.spread
+                now_lower_pip = (low[i] - open[i] if action == 1 else open[i] - high[i]) - self.spread
 
                 event = None
                 if lower_pip <= -stop_loss:
+                    if ((open[i] - open[old_i]) * action - self.spread) >= 10:
+                        print(f"pip: {pip}, lower_pip: {lower_pip} now_lower_pip:"
+                              f"{now_lower_pip}, stop_loss: {stop_loss}, position_size: {position_size}, action: {action}"
+                              f" symbol: {self.symbol}, old_i: {old_i}, i: {i}, start_index: {start_index}, end_index: {end_index}")
+
                     pip = -stop_loss
                     is_stop = True
                     event = "stop loss"
@@ -284,6 +288,7 @@ class Env:
                     pip = take_profit
                     is_stop = True
                     event = "take profit"
+                    add_hit_point = np.round(pip / stop_loss, 3)
                 elif trade_length >= 50:
                     is_stop = True
                     event = "stop trade"
@@ -297,24 +302,24 @@ class Env:
                         self.trade_event["short"][i] = event
 
             if is_stop:
-                self.stop_trade(pip, action, position_size)
-                profit_factor, expected_ratio = self.get_metrics()
+                hit_point = np.clip(np.round(hit_point + add_hit_point, 2), 0, 30)
+                now_dyas = (days + 1) / self.sim_limit
+                now_hp = hit_point / 30
 
-            if days % 100 == 0:
-                self.update_trade_state([days / self.sim_limit, profit_factor, expected_ratio,
-                                         self.asset_drawdown, self.asset / self.initial_asset * 0.1])
+                if self.trade_state[0, 2, -1] == 0 and action == 0:
+                    add_hit_point += self.trade_state[0, -1, -1].item()
+                    self.update_trade_state([now_dyas, now_hp, 0, add_hit_point], tentative_update=True)
+                else:
+                    self.update_trade_state([now_dyas, now_hp, action, add_hit_point])
+
+                self.stop_trade(pip, action, position_size)
 
             if is_stop:
-                if days >= self.sim_limit or self.asset_drawdown <= self.sim_stop_cond:
+                reward = np.round((hit_point - 20) / 10, 3)
+                if days >= self.sim_limit or hit_point == 0:
                     done = 0
-
-                    reward = (self.asset / self.initial_asset) * 100
-                    add_reward = ((profit_factor + expected_ratio) / 2)
-                    if add_reward >= 1:
-                        reward *= add_reward
-
                     if not train:
-                        profit_factor, expected_ratio, days = self.reset_trade()
+                        _, _, days = self.reset_trade()
 
                 if self.action_type == 'discrete':
                     yield now_state[0], now_state[1], policy, reward, done

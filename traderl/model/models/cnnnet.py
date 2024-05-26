@@ -11,9 +11,11 @@ class CnnNet(nn.Module):
             nn.Conv1d(self.in_channels, self.out_channels, kernel_size=8, stride=2, padding=4),
             nn.GroupNorm(min(self.out_channels // 2, 32), self.out_channels),
             nn.ELU(),
+            nn.Dropout(0.2),
             nn.Conv1d(self.out_channels, self.out_channels * 2, kernel_size=4, stride=2, padding=2),
             nn.GroupNorm(min((self.out_channels * 2) // 2, 32), self.out_channels * 2),
             nn.ELU(),
+            nn.Dropout(0.2),
             nn.Flatten(),
         )
 

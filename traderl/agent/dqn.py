@@ -245,9 +245,9 @@ class DQN:
         None. Loads the agent from disk.
         """
         checkpoint = torch.load(self.save_path)
-        self.model.load_state_dict(checkpoint['model_state_dict'])
-        self.target_model.load_state_dict(checkpoint['target_model_state_dict'])
-        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        self.model = checkpoint['model']
+        self.target_model = checkpoint['target_model']
+        self.optimizer = checkpoint['optimizer']
         self.memory = checkpoint['memory']
         self.epsilon = checkpoint['epsilon']
         self.i = checkpoint['i']
@@ -261,9 +261,9 @@ class DQN:
         None. Saves the agent to disk.
         """
         torch.save({
-            'model_state_dict': self.model.state_dict(),
-            'target_model_state_dict': self.target_model.state_dict(),
-            'optimizer_state_dict': self.optimizer.state_dict(),
+            'model': self.model,
+            'target_model': self.target_model,
+            'optimizer': self.optimizer,
             'memory': self.memory,
             'epsilon': self.epsilon,
             'i': self.i,
@@ -304,8 +304,8 @@ class DQN:
 
         for _ in range(num_iterations):
             returns = next(step, None) if done == 1 else None
-            self.epsilon *= 0.9999995  # Adjust the decay rate as needed
-            self.epsilon = max(self.epsilon, 0.05)  # Ensure epsilon does not go below a certain threshold
+            self.epsilon *= 0.99999  # Adjust the decay rate as needed
+            self.epsilon = max(self.epsilon, 0.1)  # Ensure epsilon does not go below a certain threshold
 
             if returns is None:
                 num_update_data += 1
@@ -313,7 +313,7 @@ class DQN:
                 print(f"total pip: {self.env.total_pip}, asset: {self.env.asset}")
                 states, trading_states, actions, rewards, dons = self._initialize_deques()
 
-                if (num_update_data + 1) % 15 == 0:
+                if (num_update_data + 1) % 50 == 0:
                     start, end = self._get_start_end()
                 else:
                     self.env.symbol -= 1
@@ -354,9 +354,8 @@ class DQN:
                         self.update()
 
                         if (self.i + 1) % 10000 == 0:
-                            test_end = self.test_step[-1]
-                            if (self.test_step[-1] - self.test_step[0]) > 10000:
-                                test_start = test_end - 10000
+                            test_start = self.test_step[0]
+                            test_end = np.minimum(self.test_step[-1], test_start + 10000)
 
                             self.evolution.evolute(self.get_action, test_start, test_end)
                             self.evolution_history.append(np.sum(self.evolution.total_pips))
